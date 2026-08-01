@@ -86,7 +86,10 @@ const HomeScreen = ({ navigation }: any) => {
 
     Alert.alert(
       'Claim Task',
-      `Do you want to claim this task?\n\nYou will receive: R${(task.budget * 0.85).toFixed(2)}\nPlatform fee: R${(task.budget * 0.15).toFixed(2)}`,
+      `Do you want to claim this task?
+
+You will receive: R${(task.budget * 0.85).toFixed(2)}
+Platform fee: R${(task.budget * 0.15).toFixed(2)}`,
       [
         { text: 'Cancel', style: 'cancel' },
         {

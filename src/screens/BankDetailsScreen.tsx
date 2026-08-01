@@ -77,7 +77,8 @@ const BankDetailsScreen: React.FC<Props> = ({ navigation }) => {
   const handleSave = async () => {
     const validationErrors = validateBankDetails();
     if (validationErrors.length > 0) {
-      Alert.alert('Validation Error', validationErrors.join('\n'));
+      Alert.alert('Validation Error', validationErrors.join('
+'));
       return;
     }
 

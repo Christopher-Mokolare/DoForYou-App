@@ -1,1 +1,84 @@
-import * as Notifications from 'expo-notifications';\nimport * as Device from 'expo-device';\nimport Constants from 'expo-constants';\nimport { Platform } from 'react-native';\n\nNotifications.setNotificationHandler({\n  handleNotification: async () => ({\n    shouldShowAlert: true,\n    shouldPlaySound: true,\n    shouldSetBadge: true,\n  }),\n});\n\nclass PushNotificationService {\n  private token: string | null = null;\n\n  async initialize(): Promise<string | null> {\n    if (!Device.isDevice) {\n      console.warn('Push notifications only work on physical devices');\n      return null;\n    }\n\n    const { status: existingStatus } = await Notifications.getPermissionsAsync();\n    let finalStatus = existingStatus;\n\n    if (existingStatus !== 'granted') {\n      const { status } = await Notifications.requestPermissionsAsync();\n      finalStatus = status;\n    }\n\n    if (finalStatus !== 'granted') {\n      console.warn('Push notification permission denied');\n      return null;\n    }\n\n    try {\n      const tokenData = await Notifications.getExpoPushTokenAsync({\n        projectId: Constants.expoConfig?.extra?.eas?.projectId,\n      });\n      \n      this.token = tokenData.data;\n      \n      if (Platform.OS === 'android') {\n        await Notifications.setNotificationChannelAsync('default', {\n          name: 'Default',\n          importance: Notifications.AndroidImportance.MAX,\n          vibrationPattern: [0, 250, 250, 250],\n          lightColor: '#FF6B35',\n        });\n      }\n\n      return this.token;\n    } catch (error) {\n      console.error('Error getting push token:', error);\n      return null;\n    }\n  }\n\n  getToken(): string | null {\n    return this.token;\n  }\n\n  async scheduleLocalNotification(title: string, body: string, data?: any) {\n    await Notifications.scheduleNotificationAsync({\n      content: {\n        title,\n        body,\n        data,\n        sound: 'default',\n      },\n      trigger: { seconds: 1 },\n    });\n  }\n\n  addNotificationReceivedListener(listener: (notification: Notifications.Notification) => void) {\n    return Notifications.addNotificationReceivedListener(listener);\n  }\n\n  addNotificationResponseReceivedListener(listener: (response: Notifications.NotificationResponse) => void) {\n    return Notifications.addNotificationResponseReceivedListener(listener);\n  }\n}\n\nexport const pushNotificationService = new PushNotificationService();"
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
+
+class PushNotificationService {
+  private token: string | null = null;
+
+  async initialize(): Promise<string | null> {
+    if (!Device.isDevice) {
+      console.warn('Push notifications only work on physical devices');
+      return null;
+    }
+
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== 'granted') {
+      console.warn('Push notification permission denied');
+      return null;
+    }
+
+    try {
+      const tokenData = await Notifications.getExpoPushTokenAsync({
+        projectId: Constants.expoConfig?.extra?.eas?.projectId,
+      });
+      
+      this.token = tokenData.data;
+      
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'Default',
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#FF6B35',
+        });
+      }
+
+      return this.token;
+    } catch (error) {
+      console.error('Error getting push token:', error);
+      return null;
+    }
+  }
+
+  getToken(): string | null {
+    return this.token;
+  }
+
+  async scheduleLocalNotification(title: string, body: string, data?: any) {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title,
+        body,
+        data,
+        sound: 'default',
+      },
+      trigger: { seconds: 1 },
+    });
+  }
+
+  addNotificationReceivedListener(listener: (notification: Notifications.Notification) => void) {
+    return Notifications.addNotificationReceivedListener(listener);
+  }
+
+  addNotificationResponseReceivedListener(listener: (response: Notifications.NotificationResponse) => void) {
+    return Notifications.addNotificationResponseReceivedListener(listener);
+  }
+}
+
+export const pushNotificationService = new PushNotificationService();"

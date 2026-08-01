@@ -108,7 +108,14 @@ const PostTaskScreen = ({ navigation }: any) => {
 
     Alert.alert(
       'Confirm Task Posting',
-      `You will pay R${budgetAmount} upfront.\n\nBreakdown:\n• Task budget: R${budgetAmount}\n• Platform fee (15%): R${(budgetAmount * 0.15).toFixed(2)}\n• Runner receives: R${(budgetAmount * 0.85).toFixed(2)}\n\nProceed to payment?`,
+      `You will pay R${budgetAmount} upfront.
+
+Breakdown:
+• Task budget: R${budgetAmount}
+• Platform fee (15%): R${(budgetAmount * 0.15).toFixed(2)}
+• Runner receives: R${(budgetAmount * 0.85).toFixed(2)}
+
+Proceed to payment?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {

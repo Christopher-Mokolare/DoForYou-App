@@ -198,7 +198,9 @@ const WalletScreen: React.FC<Props> = ({ navigation }) => {
               }
               Alert.alert(
                 'Withdraw Funds',
-                `Available balance: R${wallet.availableBalance.toFixed(2)}\n\nTo withdraw funds, please ensure your bank details are up to date.`,
+                `Available balance: R${wallet.availableBalance.toFixed(2)}
+
+To withdraw funds, please ensure your bank details are up to date.`,
                 [
                   { text: 'Cancel', style: 'cancel' },
                   { text: 'Update Bank Details', onPress: () => navigation.navigate('BankDetails') },
