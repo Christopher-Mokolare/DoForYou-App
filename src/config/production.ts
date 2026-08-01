@@ -19,7 +19,7 @@ export const PRODUCTION_CONFIG = {
     appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID
   },
   sentry: {
-    dsn: process.env.EXPO_PUBLIC_SENTRY_DSN
+    dsn: ''
   },
   features: {
     enablePushNotifications: true,
