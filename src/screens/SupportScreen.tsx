@@ -69,9 +69,7 @@ const SupportScreen = ({ navigation }: any) => {
   const handleEmailSupport = () => {
     const email = 'info@doforyou.co.za';
     const subject = 'DoForYou App Support';
-    const body = 'Hi, I need help with the DoForYou app.
-
-Please describe your issue:';
+    const body = `Hi, I need help with the DoForYou app.\n\nPlease describe your issue:`;
     const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     
     Linking.openURL(url);
