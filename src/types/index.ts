@@ -1,68 +1,94 @@
 // User Management Types
 export interface User {
   id: number;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  contact: string;
+  phoneNumber: string;
+  address?: string;
+  idNumber?: string;
+  username?: string;
+  dateOfBirth?: string;
+  userType: 'creator' | 'runner' | 'both';
   isVerified: boolean;
   profileCompleted: boolean;
+  profileCompletion?: number;
   rating: number;
   completedTasks: number;
   walletBalance?: number;
-  createdAt: string;
-  updatedAt: string;
-  lastLoginAt?: string;
-  roles?: string[];
+  roles?: string;
   isAdmin?: boolean;
   canCreateTasks?: boolean;
   canAcceptTasks?: boolean;
+  createdAt: string;
+  lastLoginAt?: string;
 }
 
 // Task Management Types
-export type PaymentStatus = 'pending' | 'verified' | 'failed' | 'expired' | 'refunded';
-export type TaskStatus = 'draft' | 'posted' | 'claimed' | 'in_progress' | 'completed' | 'confirmed' | 'runner_paid' | 'cancelled' | 'rejected' | 'under_review';
-export type Priority = 'standard' | 'urgent' | 'low';
+export type PaymentStatus = 'Pending' | 'EscrowHeld' | 'EscrowReleased' | 'Completed' | 'RunnerPaid';
+export type TaskStatus = 'PendingPayment' | 'Posted' | 'Claimed' | 'Completed' | 'RunnerPaid';
+export type Priority = 'Standard' | 'Urgent' | 'Low';
 
 export interface Task {
   id: number;
   taskId: string;
-  timestamp: string;
   userName: string;
   userContact: string;
   createdByUserId: number;
+  createdByUserName?: string;
   taskDescription: string;
+  category: string;
   area: string;
   dateNeeded: string;
   budget: number;
-  runnerAmount: number;
-  platformFee: number;
   notes?: string;
   paymentStatus: PaymentStatus;
   taskStatus: TaskStatus;
   helperName?: string;
   helperContact?: string;
-  helperEmail?: string;
   acceptedByUserId?: number;
+  runnerId?: number;
+  runnerName?: string;
+  runnerContact?: string;
   priority: Priority;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   completedAt?: string;
-  confirmedAt?: string;
-  paidToRunnerAt?: string;
-  termsAccepted: boolean;
-  createdByUserName: string;
-  createdByUserContact: string;
-  createdByUserEmail: string;
+  progressUpdates?: ProgressUpdate[];
+  canEdit?: boolean;
+  canComplete?: boolean;
+  canCancel?: boolean;
+}
+
+export interface ProgressUpdate {
+  id: number;
+  message: string;
+  timestamp: string;
+  userId: number;
+  userName: string;
+}
+
+export interface TaskMessage {
+  id: number;
+  taskId: string;
+  senderId: number;
+  senderName: string;
+  content: string;
+  timestamp: string;
+  isRead: boolean;
+  isCurrentUser?: boolean;
 }
 
 // Authentication Types
 export interface RegisterModel {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  contact: string;
-  phone: string;
   password: string;
-  confirmPassword: string;
+  phoneNumber: string;
+  userType: 'creator' | 'runner' | 'both';
+  address: string;
+  idNumber: string;
 }
 
 export interface LoginModel {
@@ -75,32 +101,23 @@ export interface AuthResponse {
   message: string;
   user?: User;
   token?: string;
-  refreshToken?: string;
-  expiration?: string;
 }
 
 export interface ChangePasswordModel {
   currentPassword: string;
   newPassword: string;
-  confirmPassword: string;
 }
 
 // Task Creation Types
 export interface CreateTaskData {
   taskDescription: string;
+  category: string;
   area: string;
   dateNeeded: string;
   budget: number;
   notes?: string;
-  termsAccepted: boolean;
   priority: Priority;
-}
-
-export interface PaymentBreakdown {
-  originalAmount: number;
-  platformFee: number;
-  runnerAmount: number;
-  feePercentage: number;
+  termsAccepted?: boolean;
 }
 
 export interface ClaimTaskData {
@@ -110,26 +127,15 @@ export interface ClaimTaskData {
 
 // Payment Types
 export interface PaymentRecord {
-  id: number;
-  taskId: number;
+  taskId: string;
   amount: number;
-  paymentMethod: string;
   status: string;
-  payFastPaymentId?: string;
-  amountGross?: number;
-  amountFee?: number;
-  amountNet?: number;
-  failureReason?: string;
-  payFastData?: string;
-  createdAt: string;
-  completedAt?: string;
-  expiresAt?: string;
+  date: string;
+  description: string;
 }
 
 // User Preferences Types
 export interface UserPreferences {
-  id: number;
-  userId: number;
   canCreateTasks: boolean;
   canAcceptTasks: boolean;
   taskCreatorNotifications: boolean;
@@ -139,50 +145,91 @@ export interface UserPreferences {
   smsNotifications: boolean;
   minTaskAmount?: number;
   maxTaskAmount?: number;
-  preferredCategories?: string;
-  preferredLocations?: string;
-  bankName?: string;
-  accountNumber?: string;
-  branchCode?: string;
-  accountHolderName?: string;
-  createdAt: string;
-  updatedAt: string;
+  preferredCategories?: string[];
+  preferredLocations?: string[];
 }
 
 // Notification Types
 export interface UserNotification {
   id: number;
-  userId: number;
+  type: string;
   title: string;
   message: string;
-  type: string;
   isRead: boolean;
-  taskId?: number;
   createdAt: string;
-}
-
-export interface NotificationPayload {
-  type: 'task_claimed' | 'task_completed' | 'payment_received' | 'task_update';
-  taskId?: string;
-  title: string;
-  body: string;
-  data?: any;
+  relatedTaskId?: number;
+  relatedTaskStringId?: string;
 }
 
 // Wallet Types
 export interface UserWallet {
-  id: number;
-  userId: number;
+  available: number;
   availableBalance: number;
-  escrowBalance: number;
+  pendingPayouts: number;
   totalEarned: number;
-  totalSpent: number;
-  bankName?: string;
-  accountNumber?: string;
-  branchCode?: string;
-  accountHolderName?: string;
+  totalWithdrawn: number;
+}
+
+export interface WalletTransaction {
+  id: number;
+  amount: number;
+  transactionType: 'credit' | 'debit';
+  status: string;
+  description: string;
+  reference: string;
   createdAt: string;
-  updatedAt: string;
+}
+
+export interface WithdrawalRequest {
+  amount: number;
+  bankAccount: string;
+  bankName: string;
+  accountHolder: string;
+  branchCode?: string;
+  accountType?: string;
+}
+
+export interface BankDetails {
+  bankName: string;
+  accountNumber: string;
+  branchCode: string;
+  accountHolderName: string;
+}
+
+export interface TaskRating {
+  rating: number;
+  comment?: string;
+}
+
+export interface TaskAppeal {
+  id: number;
+  taskId: number;
+  reason: string;
+  status: 'pending' | 'approved' | 'rejected';
+  adminResponse?: string;
+  createdAt: string;
+}
+
+export interface AuditLog {
+  id: number;
+  action: string;
+  description: string;
+  createdAt: string;
+}
+
+export interface ForgotPasswordModel {
+  email: string;
+}
+
+export interface ResetPasswordModel {
+  token: string;
+  email: string;
+  newPassword: string;
+}
+
+export interface EmailVerificationModel {
+  token: string;
+  email: string;
 }
 
 // API Response Types
@@ -192,60 +239,32 @@ export interface PaginatedResponse<T> {
   page: number;
   pageSize: number;
   totalPages: number;
-  data: T[];
-  timestamp: string;
+  tasks?: T[];
+  data?: T[];
 }
 
-export interface ApiError {
-  message: string;
-  status: number;
-  code?: string;
+export interface ApiResponse<T> {
+  success: boolean;
+  message?: string;
+  data?: T;
+}
+
+export interface DashboardStats {
+  postedTasks: number;
+  activeTasks: number;
+  completedTasks: number;
+  totalEarnings: number;
 }
 
 // Filter Types
 export interface TaskFilter {
+  search?: string;
+  category?: string;
   area?: string;
   minBudget?: number;
   maxBudget?: number;
   priority?: Priority;
-  status?: TaskStatus;
-  dateFrom?: string;
-  dateTo?: string;
-  searchTerm?: string;
 }
 
-// PayFast Types
-export interface PayFastConfig {
-  merchant_id: string;
-  merchant_key: string;
-  return_url: string;
-  cancel_url: string;
-  notify_url: string;
-}
-
-// Errand type (for backward compatibility)
-export interface Errand {
-  _id: string;
-  id?: number;
-  title: string;
-  description: string;
-  area: string;
-  price: number;
-  runnerAmount?: number;
-  platformFee?: number;
-  status: TaskStatus;
-  priority?: Priority;
-  dateNeeded?: string;
-  assignee?: {
-    id: number;
-    name: string;
-    email: string;
-  };
-  poster?: {
-    id: number;
-    name: string;
-    email: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-}
+// Errand backward compat
+export type Errand = Task;

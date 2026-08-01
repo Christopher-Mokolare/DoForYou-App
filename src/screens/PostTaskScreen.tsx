@@ -10,12 +10,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  SafeAreaView,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store';
 import { createTask, calculatePaymentBreakdown } from '../store/slices/tasksSlice';
+import { paymentAPI } from '../services/api';
 import { CreateTaskData, Priority } from '../types';
 
 const PostTaskScreen = ({ navigation }: any) => {
@@ -28,8 +29,28 @@ const PostTaskScreen = ({ navigation }: any) => {
   const [budget, setBudget] = useState('');
   const [notes, setNotes] = useState('');
   const [priority, setPriority] = useState<Priority>('standard');
-  const [dateNeeded, setDateNeeded] = useState(new Date());
+  const [dateNeeded, setDateNeeded] = useState(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow;
+  });
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || dateNeeded;
+    setShowDatePicker(Platform.OS === 'ios');
+    
+    // Validate that the selected date is not in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (currentDate < today) {
+      Alert.alert('Invalid Date', 'Please select a date that is today or in the future.');
+      return;
+    }
+    
+    setDateNeeded(currentDate);
+  };
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState('');
@@ -67,6 +88,14 @@ const PostTaskScreen = ({ navigation }: any) => {
       return;
     }
 
+    // Validate date is not in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (dateNeeded < today) {
+      Alert.alert('Error', 'Please select a date that is today or in the future');
+      return;
+    }
+
     const taskData: CreateTaskData = {
       taskDescription,
       area,
@@ -87,15 +116,20 @@ const PostTaskScreen = ({ navigation }: any) => {
           onPress: async () => {
             setLoading(true);
             try {
+              // Create task and immediately process payment
               const result = await dispatch(createTask(taskData)).unwrap();
-              Alert.alert('Success', 'Task created! Redirecting to payment...', [
-                { text: 'OK', onPress: () => {
-                  // Navigate to payment screen
-                  navigation.navigate('Payment', { taskId: result.id });
-                }}
+              
+              // Simulate payment (in production, redirect to PayFast)
+              const paymentResult = await paymentAPI.simulatePaymentSuccess(result.taskId);
+              
+              Alert.alert('Success', 'Task posted successfully and is now live!', [
+                { text: 'OK', onPress: () => navigation.navigate('Home') }
               ]);
             } catch (error: any) {
-              Alert.alert('Error', error || 'Failed to create task');
+              Alert.alert('Payment Failed', 'Task was not created. Please try again.', [
+                { text: 'Retry', onPress: () => handlePostTask() },
+                { text: 'Cancel', style: 'cancel' }
+              ]);
             } finally {
               setLoading(false);
             }
@@ -106,7 +140,7 @@ const PostTaskScreen = ({ navigation }: any) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <KeyboardAvoidingView 
         style={styles.keyboardView} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -174,32 +208,41 @@ const PostTaskScreen = ({ navigation }: any) => {
                 <Text style={styles.dateText}>
                   {dateNeeded.toLocaleDateString()}
                 </Text>
+                <Ionicons name="chevron-down" size={16} color="#666" />
               </TouchableOpacity>
-              {showDatePicker && Platform.OS === 'ios' && (
-                <View style={styles.datePickerContainer}>
-                  <TouchableOpacity 
-                    style={styles.datePickerButton}
-                    onPress={() => {
-                      const tomorrow = new Date();
-                      tomorrow.setDate(tomorrow.getDate() + 1);
-                      setDateNeeded(tomorrow);
-                      setShowDatePicker(false);
-                    }}
-                  >
-                    <Text>Tomorrow</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.datePickerButton}
-                    onPress={() => {
-                      const nextWeek = new Date();
-                      nextWeek.setDate(nextWeek.getDate() + 7);
-                      setDateNeeded(nextWeek);
-                      setShowDatePicker(false);
-                    }}
-                  >
-                    <Text>Next Week</Text>
-                  </TouchableOpacity>
-                </View>
+              
+              <View style={styles.quickDateContainer}>
+                <TouchableOpacity 
+                  style={styles.quickDateButton}
+                  onPress={() => {
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    setDateNeeded(tomorrow);
+                  }}
+                >
+                  <Text style={styles.quickDateText}>Tomorrow</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.quickDateButton}
+                  onPress={() => {
+                    const nextWeek = new Date();
+                    nextWeek.setDate(nextWeek.getDate() + 7);
+                    setDateNeeded(nextWeek);
+                  }}
+                >
+                  <Text style={styles.quickDateText}>Next Week</Text>
+                </TouchableOpacity>
+              </View>
+              
+              {showDatePicker && (
+                <DateTimePicker
+                  value={dateNeeded}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={onDateChange}
+                  minimumDate={new Date()}
+                  style={styles.datePicker}
+                />
               )}
             </View>
 
@@ -298,7 +341,7 @@ const PostTaskScreen = ({ navigation }: any) => {
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -412,6 +455,7 @@ const styles = StyleSheet.create({
   dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: 'white',
     borderRadius: 8,
     paddingHorizontal: 12,
@@ -423,6 +467,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     marginLeft: 10,
+    flex: 1,
+  },
+  quickDateContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
+  },
+  quickDateButton: {
+    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  quickDateText: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+  },
+  datePicker: {
+    marginTop: 10,
   },
   priorityContainer: {
     flexDirection: 'row',
@@ -479,19 +545,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     flex: 1,
   },
-  datePickerContainer: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 10,
-  },
-  datePickerButton: {
-    backgroundColor: '#f8f9fa',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-  },
+
   currencySymbol: {
     fontSize: 18,
     fontWeight: 'bold',

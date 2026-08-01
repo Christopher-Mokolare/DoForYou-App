@@ -41,7 +41,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const handleLogin = async (credentials: LoginModel) => {
     const result = await dispatch(login(credentials));
     if (login.fulfilled.match(result)) {
-      // Login successful
+      // Store tokens after successful login
+      const { token, refreshToken } = result.payload;
+      if (token) {
+        await storeTokens(token, refreshToken || '');
+      }
     } else {
       throw new Error(result.payload as string);
     }

@@ -6,16 +6,17 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
-import { logout } from '../store/slices/authSlice';
+import { logout, logoutUser } from '../store/slices/authSlice';
+import { AppDispatch } from '../store';
 import { clearTokens } from '../utils/tokenStorage';
 
 const ProfileScreen = ({ navigation }: any) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
 
   const handleLogout = () => {
@@ -28,6 +29,7 @@ const ProfileScreen = ({ navigation }: any) => {
           text: 'Logout',
           style: 'destructive',
           onPress: async () => {
+            // Force logout regardless of API response
             await clearTokens();
             dispatch(logout());
           }
@@ -41,6 +43,16 @@ const ProfileScreen = ({ navigation }: any) => {
       title: 'Edit Profile',
       icon: 'person-outline',
       onPress: () => navigation.navigate('EditProfile'),
+    },
+    {
+      title: 'My Wallet',
+      icon: 'wallet-outline',
+      onPress: () => navigation.navigate('Wallet'),
+    },
+    {
+      title: 'Bank Details',
+      icon: 'card-outline',
+      onPress: () => navigation.navigate('BankDetails'),
     },
     {
       title: 'Settings',
@@ -71,12 +83,12 @@ const ProfileScreen = ({ navigation }: any) => {
         <View style={styles.avatarContainer}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
-              {user?.name?.charAt(0).toUpperCase() || 'U'}
+              {user?.firstName?.charAt(0).toUpperCase() || 'U'}
             </Text>
           </View>
         </View>
         
-        <Text style={styles.userName}>{user?.name || 'User'}</Text>
+        <Text style={styles.userName}>{user ? `${user.firstName} ${user.lastName}` : 'User'}</Text>
         <Text style={styles.userEmail}>{user?.email}</Text>
         
         <View style={styles.statsContainer}>
@@ -90,9 +102,9 @@ const ProfileScreen = ({ navigation }: any) => {
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>
-              {user?.isVerified ? 'Yes' : 'No'}
+              R{user?.walletBalance?.toFixed(2) || '0.00'}
             </Text>
-            <Text style={styles.statLabel}>Verified</Text>
+            <Text style={styles.statLabel}>Balance</Text>
           </View>
         </View>
       </View>

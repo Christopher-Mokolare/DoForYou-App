@@ -1,0 +1,33 @@
+{
+  "cli": {
+    "version": ">= 5.9.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "ios": {
+        "simulator": true
+      }
+    },
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.doforyou.co.za",
+        "EXPO_PUBLIC_ENVIRONMENT": "production"
+      },
+      "ios": {
+        "bundleIdentifier": "com.doforyou.app"
+      },
+      "android": {
+        "buildType": "apk",
+        "package": "com.doforyou.app"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

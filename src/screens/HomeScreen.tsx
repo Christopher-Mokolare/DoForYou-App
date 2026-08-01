@@ -8,13 +8,13 @@ import {
   RefreshControl,
   Alert,
   TextInput,
-  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
 import { fetchAvailableTasks, claimTask, setCurrentTask } from '../store/slices/tasksSlice';
+import { errandAPI } from '../services/api';
 import { Task, TaskFilter, Priority } from '../types';
 
 const HomeScreen = ({ navigation }: any) => {
@@ -22,8 +22,6 @@ const HomeScreen = ({ navigation }: any) => {
   const { availableTasks, isLoading, filters } = useSelector((state: RootState) => state.tasks);
   const { user } = useSelector((state: RootState) => state.auth);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [localFilters, setLocalFilters] = useState<TaskFilter>({});
 
   useEffect(() => {
     dispatch(fetchAvailableTasks({}));
@@ -57,17 +55,23 @@ const HomeScreen = ({ navigation }: any) => {
     }
   };
 
+  // Filter tasks by search term and show relevant tasks for user
   const filteredTasks = availableTasks.filter(task => {
-    if (searchTerm && !task.taskDescription.toLowerCase().includes(searchTerm.toLowerCase()) && 
-        !task.area.toLowerCase().includes(searchTerm.toLowerCase())) {
-      return false;
-    }
-    if (localFilters.minBudget && task.budget < localFilters.minBudget) return false;
-    if (localFilters.maxBudget && task.budget > localFilters.maxBudget) return false;
-    if (localFilters.priority && task.priority !== localFilters.priority) return false;
-    if (localFilters.area && !task.area.toLowerCase().includes(localFilters.area.toLowerCase())) return false;
-    return task.taskStatus === 'posted';
+    const matchesSearch = !searchTerm || 
+      task.taskDescription.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      task.area.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Show posted tasks for claiming, and user's accepted tasks for progress
+    const isRelevant = task.taskStatus === 'Posted' ||
+      (task.acceptedByUserId === user?.id && task.taskStatus === 'Claimed');
+    
+    console.log(`Task ${task.id}: status=${task.taskStatus}, isRelevant=${isRelevant}, matchesSearch=${matchesSearch}`);
+    return matchesSearch && isRelevant;
   });
+  
+  console.log('HomeScreen: Available tasks:', availableTasks.length);
+  console.log('HomeScreen: Filtered tasks:', filteredTasks.length);
+  console.log('HomeScreen: Search term:', searchTerm);
 
   const handleClaimTask = async (task: Task) => {
     if (task.createdByUserId === user?.id) {
@@ -90,13 +94,45 @@ const HomeScreen = ({ navigation }: any) => {
           onPress: async () => {
             try {
               await dispatch(claimTask({
-                taskId: task.id,
-                helperName: user.name,
-                helperContact: user.contact
+                taskId: task.taskId,
+                helperName: `${user.firstName} ${user.lastName}`,
+                helperContact: user.phoneNumber
               })).unwrap();
               Alert.alert('Success', 'Task claimed successfully!');
             } catch (error: any) {
               Alert.alert('Error', error || 'Failed to claim task');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleStartTask = async (taskId: number) => {
+    try {
+      await errandAPI.startErrand(taskId.toString());
+      Alert.alert('Success', 'Task started!');
+      dispatch(fetchAvailableTasks({}));
+    } catch (error) {
+      Alert.alert('Error', 'Failed to start task');
+    }
+  };
+
+  const handleCompleteTask = async (taskId: number) => {
+    Alert.alert(
+      'Complete Task',
+      'Mark this task as completed? The poster will need to confirm before payment is released.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Mark Complete',
+          onPress: async () => {
+            try {
+              await errandAPI.completeErrand(taskId.toString());
+              Alert.alert('Success', 'Task marked as completed! Waiting for poster confirmation.');
+              dispatch(fetchAvailableTasks({}));
+            } catch (error) {
+              Alert.alert('Error', 'Failed to complete task');
             }
           }
         }
@@ -145,14 +181,32 @@ const HomeScreen = ({ navigation }: any) => {
         <View style={styles.posterInfo}>
           <Text style={styles.posterName}>By: {item.createdByUserName}</Text>
         </View>
-        <TouchableOpacity
-          style={[styles.claimButton, item.priority === 'urgent' && styles.urgentButton]}
-          onPress={() => handleClaimTask(item)}
-        >
-          <Text style={styles.claimButtonText}>
-            {item.priority === 'urgent' ? 'Claim Urgent' : 'Claim Task'}
-          </Text>
-        </TouchableOpacity>
+        {item.taskStatus === 'posted' && (
+          <TouchableOpacity
+            style={[styles.claimButton, item.priority === 'urgent' && styles.urgentButton]}
+            onPress={() => handleClaimTask(item)}
+          >
+            <Text style={styles.claimButtonText}>
+              {item.priority === 'urgent' ? 'Claim Urgent' : 'Claim Task'}
+            </Text>
+          </TouchableOpacity>
+        )}
+        {item.taskStatus === 'claimed' && item.acceptedByUserId === user?.id && (
+          <TouchableOpacity
+            style={[styles.claimButton, { backgroundColor: '#17a2b8' }]}
+            onPress={() => handleStartTask(item.id)}
+          >
+            <Text style={styles.claimButtonText}>Start Task</Text>
+          </TouchableOpacity>
+        )}
+        {item.taskStatus === 'in_progress' && item.acceptedByUserId === user?.id && (
+          <TouchableOpacity
+            style={[styles.claimButton, { backgroundColor: '#28a745' }]}
+            onPress={() => handleCompleteTask(item.id)}
+          >
+            <Text style={styles.claimButtonText}>Mark Complete</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -162,9 +216,7 @@ const HomeScreen = ({ navigation }: any) => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Available Tasks</Text>
         <View style={styles.headerActions}>
-          <TouchableOpacity onPress={() => setShowFilters(true)} style={styles.filterButton}>
-            <Ionicons name="options-outline" size={20} color="#ff6b35" />
-          </TouchableOpacity>
+          {/* Filter button removed - search works in search box below */}
         </View>
       </View>
       
@@ -177,6 +229,7 @@ const HomeScreen = ({ navigation }: any) => {
           onChangeText={setSearchTerm}
           placeholderTextColor="#999"
         />
+
       </View>
       
       <View style={styles.statsContainer}>
@@ -209,57 +262,7 @@ const HomeScreen = ({ navigation }: any) => {
         }
       />
       
-      <Modal visible={showFilters} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setShowFilters(false)}>
-              <Text style={styles.modalCancel}>Cancel</Text>
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>Filter Tasks</Text>
-            <TouchableOpacity onPress={() => {
-              setLocalFilters({});
-              setShowFilters(false);
-            }}>
-              <Text style={styles.modalApply}>Clear</Text>
-            </TouchableOpacity>
-          </View>
-          
-          <View style={styles.filterContent}>
-            <Text style={styles.filterLabel}>Budget Range</Text>
-            <View style={styles.budgetInputs}>
-              <TextInput
-                style={styles.budgetInput}
-                placeholder="Min R"
-                value={localFilters.minBudget?.toString() || ''}
-                onChangeText={(text) => setLocalFilters({...localFilters, minBudget: parseInt(text) || undefined})}
-                keyboardType="numeric"
-              />
-              <TextInput
-                style={styles.budgetInput}
-                placeholder="Max R"
-                value={localFilters.maxBudget?.toString() || ''}
-                onChangeText={(text) => setLocalFilters({...localFilters, maxBudget: parseInt(text) || undefined})}
-                keyboardType="numeric"
-              />
-            </View>
-            
-            <Text style={styles.filterLabel}>Priority</Text>
-            <View style={styles.priorityButtons}>
-              {(['standard', 'urgent', 'low'] as Priority[]).map(priority => (
-                <TouchableOpacity
-                  key={priority}
-                  style={[styles.priorityButton, localFilters.priority === priority && styles.priorityButtonActive]}
-                  onPress={() => setLocalFilters({...localFilters, priority: localFilters.priority === priority ? undefined : priority})}
-                >
-                  <Text style={[styles.priorityButtonText, localFilters.priority === priority && styles.priorityButtonTextActive]}>
-                    {priority.charAt(0).toUpperCase() + priority.slice(1)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </SafeAreaView>
-      </Modal>
+
     </SafeAreaView>
   );
 };
@@ -314,6 +317,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',

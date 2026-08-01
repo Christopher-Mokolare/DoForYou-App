@@ -6,22 +6,33 @@ import {
   TouchableOpacity,
   StyleSheet,
   RefreshControl,
-  SafeAreaView,
+  Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
 import { fetchUserTasks } from '../store/slices/tasksSlice';
-import { Errand } from '../types';
+import { errandAPI } from '../services/api';
+import { Task } from '../types';
 
 const MyTasksScreen = ({ navigation }: any) => {
   const dispatch = useDispatch<AppDispatch>();
   const { userTasks, isLoading } = useSelector((state: RootState) => state.tasks);
-  const [filter, setFilter] = useState<'all' | 'posted' | 'accepted'>('all');
+  const [filter, setFilter] = useState<'all' | 'posted' | 'completed'>('all');
 
   useEffect(() => {
     dispatch(fetchUserTasks());
   }, [dispatch]);
+
+  useEffect(() => {
+    console.log('MyTasksScreen: Total user tasks:', userTasks.length);
+    console.log('MyTasksScreen: Filtered tasks:', filteredTasks.length);
+    console.log('MyTasksScreen: Current filter:', filter);
+    if (userTasks.length > 0) {
+      console.log('MyTasksScreen: First task:', userTasks[0]);
+    }
+  }, [userTasks, filteredTasks, filter]);
 
   const handleRefresh = () => {
     dispatch(fetchUserTasks());
@@ -34,42 +45,80 @@ const MyTasksScreen = ({ navigation }: any) => {
       case 'in_progress': return '#17a2b8';
       case 'completed': return '#28a745';
       case 'confirmed': return '#6f42c1';
+      case 'cancelled': return '#dc3545';
+      case 'draft': return '#6c757d';
       default: return '#6c757d';
     }
   };
 
   const filteredTasks = userTasks.filter(task => {
     if (filter === 'all') return true;
-    if (filter === 'posted') return task.status === 'posted';
-    if (filter === 'accepted') return task.assignee;
+    if (filter === 'posted') return task.taskStatus === 'posted';
+    if (filter === 'completed') return ['completed', 'confirmed', 'runner_paid'].includes(task.taskStatus);
     return true;
   });
 
-  const renderTask = ({ item }: { item: Errand }) => (
+  const handleConfirmCompletion = async (taskId: number) => {
+    Alert.alert(
+      'Confirm Task Completion',
+      'Are you satisfied with the work? This will release payment to the runner.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Confirm & Pay',
+          onPress: async () => {
+            try {
+              await errandAPI.confirmErrand(taskId.toString());
+              Alert.alert('Success', 'Task confirmed and payment released!');
+              dispatch(fetchUserTasks());
+            } catch (error) {
+              Alert.alert('Error', 'Failed to confirm task completion');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const renderTask = ({ item }: { item: Task }) => (
     <TouchableOpacity 
       style={styles.taskCard}
       onPress={() => navigation.navigate('TaskDetails', { task: item })}
     >
       <View style={styles.taskHeader}>
-        <Text style={styles.taskTitle}>{item.title}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-          <Text style={styles.statusText}>{item.status}</Text>
+        <Text style={styles.taskTitle}>{item.taskTitle || item.taskDescription}</Text>
+        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.taskStatus) }]}>
+          <Text style={styles.statusText}>{item.taskStatus}</Text>
         </View>
       </View>
       
       <Text style={styles.taskDescription} numberOfLines={2}>
-        {item.description}
+        {item.taskDescription || item.notes || 'No additional notes'}
       </Text>
       
+      <View style={styles.taskMeta}>
+        <Text style={styles.taskArea}>📍 {item.area}</Text>
+        <Text style={styles.taskDate}>📅 {new Date(item.dateNeeded).toLocaleDateString()}</Text>
+      </View>
+      
       <View style={styles.taskFooter}>
-        <Text style={styles.taskPrice}>R{item.price}</Text>
-        {item.assignee && (
+        <Text style={styles.taskPrice}>R{item.budget}</Text>
+        {item.helperName && (
           <View style={styles.assigneeInfo}>
             <Ionicons name="person-outline" size={16} color="#666" />
-            <Text style={styles.assigneeText}>{item.assignee.name}</Text>
+            <Text style={styles.assigneeText}>{item.helperName}</Text>
           </View>
         )}
       </View>
+      
+      {item.taskStatus === 'completed' && (
+        <TouchableOpacity 
+          style={styles.confirmButton}
+          onPress={() => handleConfirmCompletion(item.id)}
+        >
+          <Text style={styles.confirmButtonText}>Confirm & Release Payment</Text>
+        </TouchableOpacity>
+      )}
     </TouchableOpacity>
   );
 
@@ -80,7 +129,7 @@ const MyTasksScreen = ({ navigation }: any) => {
       </View>
 
       <View style={styles.filterContainer}>
-        {['all', 'posted', 'accepted'].map((filterType) => (
+        {['all', 'posted', 'completed'].map((filterType) => (
           <TouchableOpacity
             key={filterType}
             style={[
@@ -102,7 +151,7 @@ const MyTasksScreen = ({ navigation }: any) => {
       <FlatList
         data={filteredTasks}
         renderItem={renderTask}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => item.id.toString()}
         refreshControl={
           <RefreshControl refreshing={isLoading} onRefresh={handleRefresh} />
         }
@@ -196,6 +245,19 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     lineHeight: 20,
   },
+  taskMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  taskArea: {
+    fontSize: 12,
+    color: '#666',
+  },
+  taskDate: {
+    fontSize: 12,
+    color: '#666',
+  },
   taskFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -214,6 +276,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginLeft: 4,
+  },
+  confirmButton: {
+    backgroundColor: '#28a745',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  confirmButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
   },
 });
 

@@ -2,9 +2,9 @@ import axios from 'axios';
 
 export const testNetworkConnection = async () => {
   const testUrls = [
-    'http://10.0.2.2:5015/api',  // Android emulator
-    'http://localhost:5015/api', // iOS simulator
-    'http://127.0.0.1:5015/api', // Alternative localhost
+    'http://localhost:5000/api', // Local backend
+    'http://10.0.2.2:5000/api',  // Android emulator
+    'http://127.0.0.1:5000/api', // Alternative localhost
   ];
 
   for (const url of testUrls) {

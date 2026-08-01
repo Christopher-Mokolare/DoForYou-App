@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  baseUrl: __DEV__ ? 'http://10.219.232.237:3001' : 'https://your-backend-domain.com',
+  baseUrl: __DEV__ ? 'http://10.89.214.237:3001' : 'https://your-backend-domain.com',
   apiKey: 'DFY_63c6ee01-0ba6-49e1-9f67-4b752c523267',
   timeout: 30000,
 
@@ -21,7 +21,7 @@ export const ENDPOINTS = {
     LOGOUT: '/api/auth/logout'
   },
   TASKS: {
-    AVAILABLE: '/api/errands/available',
+    AVAILABLE: '/api/errands',
     CREATE: '/api/errands',
     MY_TASKS: '/api/errands/my-errands',
     CLAIM: (taskId: string) => `/api/errands/${taskId}/accept`,

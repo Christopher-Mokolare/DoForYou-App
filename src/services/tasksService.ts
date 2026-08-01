@@ -8,31 +8,44 @@ export const tasksAPI = {
     pageSize: number = 10, 
     filters?: TaskFilter
   ): Promise<PaginatedResponse<Task>> => {
-    const params = new URLSearchParams({
-      Page: page.toString(),
-      PageSize: pageSize.toString()
-    });
-
-    if (filters) {
-      if (filters.area) params.append('area', filters.area);
-      if (filters.minBudget) params.append('minBudget', filters.minBudget.toString());
-      if (filters.maxBudget) params.append('maxBudget', filters.maxBudget.toString());
-      if (filters.priority) params.append('priority', filters.priority);
-      if (filters.searchTerm) params.append('search', filters.searchTerm);
-      if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
-      if (filters.dateTo) params.append('dateTo', filters.dateTo);
-    }
-
-    const response = await apiClient.get(`${ENDPOINTS.TASKS.AVAILABLE}?${params}`);
+    const response = await apiClient.get(ENDPOINTS.TASKS.AVAILABLE);
+    const tasks = Array.isArray(response.data) ? response.data : [];
+    
     return {
-      ...response.data,
-      data: response.data.tasks || response.data.data
+      data: tasks.map((errand: any) => ({
+        id: errand._id,
+        title: errand.title,
+        description: errand.description,
+        category: errand.category,
+        budget: errand.price,
+        status: errand.status,
+        createdAt: errand.createdAt,
+        updatedAt: errand.updatedAt,
+        posterName: errand.poster?.name || 'Unknown',
+        posterRating: errand.poster?.rating || 0
+      })),
+      totalCount: tasks.length,
+      page: 1,
+      pageSize: tasks.length
     };
   },
 
   getUserTasks: async (): Promise<Task[]> => {
     const response = await apiClient.get(ENDPOINTS.TASKS.MY_TASKS);
-    return response.data.tasks || response.data;
+    const tasks = Array.isArray(response.data) ? response.data : [];
+    
+    return tasks.map((errand: any) => ({
+      id: errand._id,
+      title: errand.title,
+      description: errand.description,
+      category: errand.category,
+      budget: errand.price,
+      status: errand.status,
+      createdAt: errand.createdAt,
+      updatedAt: errand.updatedAt,
+      posterName: errand.poster?.name || 'Unknown',
+      posterRating: errand.poster?.rating || 0
+    }));
   },
 
   getTaskDetails: async (taskId: string): Promise<Task> => {

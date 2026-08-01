@@ -18,21 +18,21 @@ const TaskDetailsScreen = ({ navigation, route }: any) => {
   const { task } = route.params;
 
   const handleAcceptTask = async () => {
-    if (task.poster && user && task.poster.id === user.id) {
+    if (task.createdByUserId === user?.id) {
       Alert.alert('Error', 'You cannot accept your own task');
       return;
     }
 
     Alert.alert(
       'Accept Task',
-      `Do you want to accept "${task.title}"?`,
+      `Do you want to accept "${task.taskTitle}"?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Accept',
           onPress: async () => {
             try {
-              await dispatch(acceptTask(task._id)).unwrap();
+              await dispatch(acceptTask(task.id)).unwrap();
               Alert.alert('Success', 'Task accepted successfully!', [
                 { text: 'OK', onPress: () => navigation.goBack() }
               ]);
@@ -55,7 +55,42 @@ const TaskDetailsScreen = ({ navigation, route }: any) => {
     }
   };
 
-  const canAcceptTask = task.status === 'posted' && (!task.poster || task.poster.id !== user?.id);
+  const canAcceptTask = task.taskStatus === 'posted' && task.createdByUserId !== user?.id;
+  const canConfirmCompletion = task.taskStatus === 'completed' && task.createdByUserId === user?.id;
+  const canMarkCompleted = task.taskStatus === 'in_progress' && task.acceptedByUserId === user?.id;
+  const canAppeal = task.taskStatus === 'rejected' && task.acceptedByUserId === user?.id;
+  const canRate = (task.taskStatus === 'runner_paid' || task.taskStatus === 'confirmed') && 
+                  (task.createdByUserId === user?.id || task.acceptedByUserId === user?.id);
+
+  const handleMarkCompleted = () => {
+    Alert.alert(
+      'Mark as Completed',
+      'Are you sure you have completed this task?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Yes, Completed',
+          onPress: () => {
+            // Update task status to completed
+            navigation.navigate('TaskRating', { task, userType: 'runner' });
+          }
+        }
+      ]
+    );
+  };
+
+  const handleConfirmCompletion = () => {
+    navigation.navigate('TaskConfirmation', { task });
+  };
+
+  const handleAppeal = () => {
+    navigation.navigate('TaskAppeal', { task });
+  };
+
+  const handleRate = () => {
+    const userType = task.createdByUserId === user?.id ? 'creator' : 'runner';
+    navigation.navigate('TaskRating', { task, userType });
+  };
 
   return (
     <View style={styles.container}>
@@ -70,53 +105,53 @@ const TaskDetailsScreen = ({ navigation, route }: any) => {
       <ScrollView style={styles.content}>
         <View style={styles.taskCard}>
           <View style={styles.taskHeader}>
-            <Text style={styles.taskTitle}>{task.title}</Text>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(task.status) }]}>
-              <Text style={styles.statusText}>{task.status}</Text>
+            <Text style={styles.taskTitle}>{task.taskTitle}</Text>
+            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(task.taskStatus) }]}>
+              <Text style={styles.statusText}>{task.taskStatus}</Text>
             </View>
           </View>
 
-          <Text style={styles.taskPrice}>R{task.price}</Text>
+          <Text style={styles.taskPrice}>R{task.budget}</Text>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Description</Text>
-            <Text style={styles.taskDescription}>{task.description}</Text>
+            <Text style={styles.taskDescription}>{task.taskDescription}</Text>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Category</Text>
-            <Text style={styles.taskCategory}>{task.category}</Text>
+            <Text style={styles.sectionTitle}>Area</Text>
+            <Text style={styles.taskCategory}>{task.area}</Text>
           </View>
 
-          {task.poster && (
+          {task.createdByUser && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Posted by</Text>
               <View style={styles.posterInfo}>
                 <View style={styles.posterAvatar}>
                   <Text style={styles.posterInitial}>
-                    {task.poster.name?.charAt(0).toUpperCase() || 'U'}
+                    {task.createdByUser.firstName?.charAt(0).toUpperCase() || 'U'}
                   </Text>
                 </View>
                 <View>
-                  <Text style={styles.posterName}>{task.poster.name}</Text>
-                  <Text style={styles.posterEmail}>{task.poster.email}</Text>
+                  <Text style={styles.posterName}>{task.createdByUser.firstName} {task.createdByUser.lastName}</Text>
+                  <Text style={styles.posterEmail}>{task.createdByUser.email}</Text>
                 </View>
               </View>
             </View>
           )}
 
-          {task.assignee && (
+          {task.acceptedByUser && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Assigned to</Text>
               <View style={styles.posterInfo}>
                 <View style={styles.posterAvatar}>
                   <Text style={styles.posterInitial}>
-                    {task.assignee.name?.charAt(0).toUpperCase() || 'U'}
+                    {task.acceptedByUser.firstName?.charAt(0).toUpperCase() || 'U'}
                   </Text>
                 </View>
                 <View>
-                  <Text style={styles.posterName}>{task.assignee.name}</Text>
-                  <Text style={styles.posterEmail}>{task.assignee.email}</Text>
+                  <Text style={styles.posterName}>{task.acceptedByUser.firstName} {task.acceptedByUser.lastName}</Text>
+                  <Text style={styles.posterEmail}>{task.acceptedByUser.email}</Text>
                 </View>
               </View>
             </View>
@@ -126,6 +161,34 @@ const TaskDetailsScreen = ({ navigation, route }: any) => {
         {canAcceptTask && (
           <TouchableOpacity style={styles.acceptButton} onPress={handleAcceptTask}>
             <Text style={styles.acceptButtonText}>Accept Task</Text>
+          </TouchableOpacity>
+        )}
+
+        {canMarkCompleted && (
+          <TouchableOpacity style={styles.completeButton} onPress={handleMarkCompleted}>
+            <Ionicons name="checkmark-circle" size={20} color="white" />
+            <Text style={styles.completeButtonText}>Mark as Completed</Text>
+          </TouchableOpacity>
+        )}
+
+        {canConfirmCompletion && (
+          <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmCompletion}>
+            <Ionicons name="clipboard-outline" size={20} color="white" />
+            <Text style={styles.confirmButtonText}>Review Completion</Text>
+          </TouchableOpacity>
+        )}
+
+        {canAppeal && (
+          <TouchableOpacity style={styles.appealButton} onPress={handleAppeal}>
+            <Ionicons name="megaphone-outline" size={20} color="white" />
+            <Text style={styles.appealButtonText}>Appeal Rejection</Text>
+          </TouchableOpacity>
+        )}
+
+        {canRate && (
+          <TouchableOpacity style={styles.rateButton} onPress={handleRate}>
+            <Ionicons name="star-outline" size={20} color="white" />
+            <Text style={styles.rateButtonText}>Rate Experience</Text>
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -257,6 +320,66 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  completeButton: {
+    backgroundColor: '#28a745',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 15,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  completeButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  confirmButton: {
+    backgroundColor: '#17a2b8',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 15,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  confirmButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  appealButton: {
+    backgroundColor: '#dc3545',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 15,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  appealButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  rateButton: {
+    backgroundColor: '#ffc107',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 15,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  rateButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });
 

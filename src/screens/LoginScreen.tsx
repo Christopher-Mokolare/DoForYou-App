@@ -149,6 +149,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               </TouchableOpacity>
 
               <TouchableOpacity 
+                style={styles.forgotButton}
+                onPress={() => navigation.navigate('ForgotPassword')}
+              >
+                <Text style={styles.forgotText}>Forgot Password?</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
                 style={styles.linkButton}
                 onPress={() => navigation.navigate('Register')}
               >
@@ -286,6 +293,15 @@ const styles = StyleSheet.create({
   linkTextBold: {
     color: '#ff6b35',
     fontWeight: '600',
+  },
+  forgotButton: {
+    marginTop: 15,
+    alignItems: 'center',
+  },
+  forgotText: {
+    color: '#ff6b35',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
 

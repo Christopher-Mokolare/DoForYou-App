@@ -1,254 +1,138 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
-  Linking
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { WebView } from 'react-native-webview';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import { paymentAPI } from '../services/paymentService';
-import { Task } from '../types';
+import { paymentAPI } from '../services/api';
 
-interface PaymentScreenProps {
-  route: {
-    params: {
-      task: Task;
-    };
-  };
+interface Props {
+  navigation: any;
+  route: any;
 }
 
-const PaymentScreen: React.FC<PaymentScreenProps> = () => {
-  const route = useRoute();
-  const navigation = useNavigation();
-  const { task } = route.params as { task: Task };
-  
-  const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const PaymentScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { taskId } = route.params || {};
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    generatePaymentUrl();
-  }, []);
-
-  const generatePaymentUrl = async () => {
+  const handleSandboxPayment = async () => {
+    if (!taskId) return;
+    
+    setLoading(true);
     try {
-      setIsLoading(true);
-      const response = await paymentAPI.generatePaymentUrl(task.id.toString());
-      setPaymentUrl(response.paymentUrl);
+      const result = await paymentAPI.simulatePaymentSuccess(taskId);
+      Alert.alert('Success', result.message, [
+        { text: 'OK', onPress: () => navigation.navigate('Home') }
+      ]);
     } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to generate payment URL');
-      Alert.alert('Error', 'Failed to generate payment URL');
+      Alert.alert('Error', error.message || 'Payment simulation failed');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
-
-  const handleNavigationStateChange = (navState: any) => {
-    const { url } = navState;
-    
-    // Check for success URL
-    if (url.includes('doforyou://payment/success')) {
-      navigation.navigate('PaymentSuccess', { task });
-      return;
-    }
-    
-    // Check for cancel URL
-    if (url.includes('doforyou://payment/cancel')) {
-      navigation.navigate('PaymentCancel', { task });
-      return;
-    }
-  };
-
-  const handleError = () => {
-    Alert.alert(
-      'Payment Error',
-      'There was an error processing your payment. Please try again.',
-      [
-        { text: 'Retry', onPress: generatePaymentUrl },
-        { text: 'Cancel', onPress: () => navigation.goBack() }
-      ]
-    );
-  };
-
-  if (isLoading) {
-    return (
-      <LinearGradient colors={['#ff6b35', '#ff8c42', '#ffa726']} style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="white" />
-          <Text style={styles.loadingText}>Preparing payment...</Text>
-        </View>
-      </LinearGradient>
-    );
-  }
-
-  if (error || !paymentUrl) {
-    return (
-      <LinearGradient colors={['#ff6b35', '#ff8c42', '#ffa726']} style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle" size={64} color="white" />
-          <Text style={styles.errorTitle}>Payment Error</Text>
-          <Text style={styles.errorMessage}>{error || 'Unable to load payment page'}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={generatePaymentUrl}>
-            <Text style={styles.retryButtonText}>Try Again</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
-            <Text style={styles.cancelButtonText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
-    );
-  }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#ff6b35" />
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Payment</Text>
-        <View style={styles.placeholder} />
+        <View style={{ width: 24 }} />
       </View>
 
-      <View style={styles.taskInfo}>
-        <Text style={styles.taskTitle}>{task.taskDescription}</Text>
-        <Text style={styles.taskAmount}>Amount: R{task.budget}</Text>
+      <View style={styles.content}>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Task Payment</Text>
+          {taskId && (
+            <Text style={styles.taskId}>Task ID: {taskId}</Text>
+          )}
+          
+          <TouchableOpacity 
+            style={[styles.button, styles.sandboxButton]} 
+            onPress={handleSandboxPayment}
+            disabled={loading}
+          >
+            <Ionicons name="card-outline" size={20} color="white" />
+            <Text style={styles.buttonText}>
+              {loading ? 'Processing...' : 'Simulate Payment (Sandbox)'}
+            </Text>
+          </TouchableOpacity>
+          
+          <Text style={styles.note}>
+            This is a sandbox environment for testing. No real payment will be processed.
+          </Text>
+        </View>
       </View>
-
-      <WebView
-        source={{ uri: paymentUrl }}
-        style={styles.webview}
-        onNavigationStateChange={handleNavigationStateChange}
-        onError={handleError}
-        startInLoadingState={true}
-        renderLoading={() => (
-          <View style={styles.webviewLoading}>
-            <ActivityIndicator size="large" color="#ff6b35" />
-            <Text style={styles.webviewLoadingText}>Loading payment page...</Text>
-          </View>
-        )}
-      />
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8f9fa',
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 50,
+    alignItems: 'center',
     paddingHorizontal: 20,
-    paddingBottom: 15,
+    paddingVertical: 15,
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#e9ecef',
-  },
-  backButton: {
-    padding: 5,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
   },
-  placeholder: {
-    width: 34,
-  },
-  taskInfo: {
-    backgroundColor: 'white',
+  content: {
+    flex: 1,
     padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
   },
-  taskTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 5,
-  },
-  taskAmount: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#ff6b35',
-  },
-  webview: {
-    flex: 1,
-  },
-  webviewLoading: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
+  card: {
     backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
   },
-  webviewLoadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#666',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 20,
-    fontSize: 18,
-    color: 'white',
-    fontWeight: '600',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  errorTitle: {
+  cardTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'white',
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  errorMessage: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
-    textAlign: 'center',
-    marginBottom: 30,
-  },
-  retryButton: {
-    backgroundColor: 'white',
-    paddingHorizontal: 30,
-    paddingVertical: 15,
-    borderRadius: 25,
+    color: '#333',
     marginBottom: 15,
   },
-  retryButtonText: {
-    color: '#ff6b35',
+  taskId: {
     fontSize: 16,
-    fontWeight: 'bold',
+    color: '#666',
+    marginBottom: 20,
   },
-  cancelButton: {
-    paddingHorizontal: 30,
-    paddingVertical: 15,
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginBottom: 15,
   },
-  cancelButtonText: {
+  sandboxButton: {
+    backgroundColor: '#28a745',
+  },
+  buttonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+    marginLeft: 8,
+  },
+  note: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });
 

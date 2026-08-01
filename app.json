@@ -1,31 +1,80 @@
 {
   "expo": {
-    "name": "DoForYouApp",
-    "slug": "DoForYouApp",
+    "name": "DoForYou",
+    "slug": "doforyou-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "scheme": "doforyou",
+    "privacy": "public",
+    "platforms": ["ios", "android"],
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FF6B35"
     },
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.DoForYouApp"
+      "bundleIdentifier": "com.doforyou.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app uses location to show nearby tasks and calculate distances.",
+        "NSCameraUsageDescription": "This app uses camera to take photos for task completion.",
+        "NSPhotoLibraryUsageDescription": "This app accesses photo library to attach images to tasks.",
+        "NSFaceIDUsageDescription": "Use Face ID to authenticate securely."
+      }
     },
     "android": {
+      "package": "com.doforyou.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#FF6B35"
       },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "USE_FINGERPRINT",
+        "USE_BIOMETRIC"
+      ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "notification": {
+      "icon": "./assets/icon.png",
+      "color": "#FF6B35"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "plugins": [
+      "expo-location",
+      "expo-notifications",
+      "expo-local-authentication",
+      "@sentry/react-native/expo"
+    ],
+    "hooks": {
+      "postPublish": [
+        {
+          "file": "sentry-expo/upload-sourcemaps",
+          "config": {
+            "organization": "doforyou",
+            "project": "doforyou-mobile"
+          }
+        }
+      ]
     }
   }
 }

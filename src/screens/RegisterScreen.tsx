@@ -22,10 +22,14 @@ interface RegisterScreenProps {
 }
 
 const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [address, setAddress] = useState('');
+  const [idNumber, setIdNumber] = useState('');
+  const [userType, setUserType] = useState<'creator' | 'runner' | 'both'>('both');
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -41,14 +45,13 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   }, []);
 
   const handleRegister = async () => {
-    if (!name || !email || !password) {
+    if (!firstName || !lastName || !email || !password || !phoneNumber || !address || !idNumber) {
       Alert.alert('Error', 'Please fill in all required fields');
       return;
     }
-
     setIsLoading(true);
     try {
-      await register({ name, email, contact: phone || '', phone: phone || '', password, confirmPassword: password });
+      await register({ firstName, lastName, email, password, phoneNumber, address, idNumber, userType });
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.message || 'Registration failed');
     } finally {
@@ -79,46 +82,60 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
             </Animated.View>
 
             <Animated.View style={[styles.formContainer, { opacity: fadeAnim }]}>
-              <View style={[styles.inputContainer, focusedField === 'name' && styles.inputFocused]}>
-                <Ionicons name="person-outline" size={20} color={focusedField === 'name' ? '#ff6b35' : '#666'} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Full Name *"
-                  placeholderTextColor="#999"
-                  value={name}
-                  onChangeText={setName}
-                  onFocus={() => setFocusedField('name')}
-                  onBlur={() => setFocusedField('')}
-                />
+              <View style={[styles.inputContainer, focusedField === 'firstName' && styles.inputFocused]}>
+                <Ionicons name="person-outline" size={20} color={focusedField === 'firstName' ? '#ff6b35' : '#666'} />
+                <TextInput style={styles.input} placeholder="First Name *" placeholderTextColor="#999"
+                  value={firstName} onChangeText={setFirstName}
+                  onFocus={() => setFocusedField('firstName')} onBlur={() => setFocusedField('')} />
+              </View>
+
+              <View style={[styles.inputContainer, focusedField === 'lastName' && styles.inputFocused]}>
+                <Ionicons name="person-outline" size={20} color={focusedField === 'lastName' ? '#ff6b35' : '#666'} />
+                <TextInput style={styles.input} placeholder="Last Name *" placeholderTextColor="#999"
+                  value={lastName} onChangeText={setLastName}
+                  onFocus={() => setFocusedField('lastName')} onBlur={() => setFocusedField('')} />
               </View>
 
               <View style={[styles.inputContainer, focusedField === 'email' && styles.inputFocused]}>
                 <Ionicons name="mail-outline" size={20} color={focusedField === 'email' ? '#ff6b35' : '#666'} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Email *"
-                  placeholderTextColor="#999"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  onFocus={() => setFocusedField('email')}
-                  onBlur={() => setFocusedField('')}
-                />
+                <TextInput style={styles.input} placeholder="Email *" placeholderTextColor="#999"
+                  value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none"
+                  onFocus={() => setFocusedField('email')} onBlur={() => setFocusedField('')} />
               </View>
 
               <View style={[styles.inputContainer, focusedField === 'phone' && styles.inputFocused]}>
                 <Ionicons name="call-outline" size={20} color={focusedField === 'phone' ? '#ff6b35' : '#666'} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Phone Number"
-                  placeholderTextColor="#999"
-                  value={phone}
-                  onChangeText={setPhone}
-                  keyboardType="phone-pad"
-                  onFocus={() => setFocusedField('phone')}
-                  onBlur={() => setFocusedField('')}
-                />
+                <TextInput style={styles.input} placeholder="Phone Number *" placeholderTextColor="#999"
+                  value={phoneNumber} onChangeText={setPhoneNumber} keyboardType="phone-pad"
+                  onFocus={() => setFocusedField('phone')} onBlur={() => setFocusedField('')} />
+              </View>
+
+              <View style={[styles.inputContainer, focusedField === 'address' && styles.inputFocused]}>
+                <Ionicons name="location-outline" size={20} color={focusedField === 'address' ? '#ff6b35' : '#666'} />
+                <TextInput style={styles.input} placeholder="Address *" placeholderTextColor="#999"
+                  value={address} onChangeText={setAddress}
+                  onFocus={() => setFocusedField('address')} onBlur={() => setFocusedField('')} />
+              </View>
+
+              <View style={[styles.inputContainer, focusedField === 'idNumber' && styles.inputFocused]}>
+                <Ionicons name="card-outline" size={20} color={focusedField === 'idNumber' ? '#ff6b35' : '#666'} />
+                <TextInput style={styles.input} placeholder="ID Number *" placeholderTextColor="#999"
+                  value={idNumber} onChangeText={setIdNumber}
+                  onFocus={() => setFocusedField('idNumber')} onBlur={() => setFocusedField('')} />
+              </View>
+
+              <Text style={{ fontSize: 14, color: '#666', marginBottom: 8, fontWeight: '600' }}>I want to:</Text>
+              <View style={{ flexDirection: 'row', marginBottom: 20, gap: 8 }}>
+                {(['creator', 'runner', 'both'] as const).map((t) => (
+                  <TouchableOpacity key={t} onPress={() => setUserType(t)}
+                    style={{ flex: 1, paddingVertical: 10, borderRadius: 8, alignItems: 'center',
+                      backgroundColor: userType === t ? '#ff6b35' : '#f8f9fa',
+                      borderWidth: 1, borderColor: userType === t ? '#ff6b35' : '#e9ecef' }}>
+                    <Text style={{ color: userType === t ? 'white' : '#666', fontWeight: '600', fontSize: 12 }}>
+                      {t === 'creator' ? 'Post Tasks' : t === 'runner' ? 'Run Tasks' : 'Both'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
 
               <View style={[styles.inputContainer, focusedField === 'password' && styles.inputFocused]}>
