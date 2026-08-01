@@ -9,13 +9,18 @@
     "newArchEnabled": true,
     "scheme": "doforyou",
     "privacy": "public",
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#FF6B35"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.doforyou.app",
@@ -43,7 +48,11 @@
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",
         "USE_FINGERPRINT",
-        "USE_BIOMETRIC"
+        "USE_BIOMETRIC",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
       ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
@@ -75,6 +84,12 @@
           }
         }
       ]
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "1442a2e3-8ac5-44d1-97b2-5cd2600ab6ce"
+      }
+    },
+    "owner": "chrismokolare"
   }
 }
