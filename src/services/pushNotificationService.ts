@@ -81,4 +81,4 @@ class PushNotificationService {
   }
 }
 
-export const pushNotificationService = new PushNotificationService();"
+export const pushNotificationService = new PushNotificationService();
