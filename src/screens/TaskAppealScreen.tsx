@@ -102,15 +102,10 @@ const TaskAppealScreen: React.FC<Props> = ({ navigation, route }) => {
 
         <View style={commonStyles.infoCard}>
           <Text style={commonStyles.infoTitle}>Appeal Process:</Text>
-          <Text style={commonStyles.infoText}>
-            • Admin will review your appeal within 24 hours{'
-'}
-            • You will be notified of the decision{'
-'}
-            • Admin's decision is final{'
-'}
-            • If approved, you will receive payment immediately
-          </Text>
+          <Text style={commonStyles.infoText}>{`• Admin will review your appeal within 24 hours
+• You will be notified of the decision
+• Admin's decision is final
+• If approved, you will receive payment immediately`}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
