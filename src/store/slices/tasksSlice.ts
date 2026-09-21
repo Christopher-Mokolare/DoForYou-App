@@ -68,9 +68,9 @@ export const createTask = createAsyncThunk(
 
 export const claimTask = createAsyncThunk(
   'tasks/claim',
-  async ({ taskId, helperName, helperContact }: { taskId: string; helperName: string; helperContact: string }, { rejectWithValue }) => {
+  async ({ taskId, helperName, helperContact, termsAccepted }: { taskId: string; helperName: string; helperContact: string; termsAccepted?: boolean }, { rejectWithValue }) => {
     try {
-      await tasksAPI.claimTask(taskId, { helperName, helperContact });
+      await tasksAPI.claimTask(taskId, { helperName, helperContact, termsAccepted: termsAccepted ?? true });
       return taskId;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to claim task');
