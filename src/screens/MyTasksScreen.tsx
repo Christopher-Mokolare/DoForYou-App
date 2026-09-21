@@ -27,12 +27,8 @@ const MyTasksScreen = ({ navigation }: any) => {
 
   useEffect(() => {
     console.log('MyTasksScreen: Total user tasks:', userTasks.length);
-    console.log('MyTasksScreen: Filtered tasks:', filteredTasks.length);
     console.log('MyTasksScreen: Current filter:', filter);
-    if (userTasks.length > 0) {
-      console.log('MyTasksScreen: First task:', userTasks[0]);
-    }
-  }, [userTasks, filteredTasks, filter]);
+  }, [userTasks, filter]);
 
   const handleRefresh = () => {
     dispatch(fetchUserTasks());
