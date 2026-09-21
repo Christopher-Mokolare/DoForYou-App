@@ -19,7 +19,7 @@ export interface Task {
   posterName?:string; posterRating?:number; status?:string;
 }
 export interface ProgressUpdate { id:number; message:string; timestamp:string; userId:number; userName:string; }
-export interface TaskMessage { id:number; taskId:string; senderId:number; senderName:string; content:string; timestamp:string; isRead:boolean; isCurrentUser?:boolean; }
+export interface TaskMessage { id:number; taskId:string; senderId:number; senderName:string; content:string; timestamp:string; isRead:boolean; isCurrentUser?:boolean; isSystem?:boolean; }
 export interface TaskConversation { id:number; taskId:string; title:string; description:string; taskStatus:TaskStatus|string; chatClosed:boolean; completedAt?:string; participantName:string; participantId?:number; lastMessage?:string; lastMessageAt?:string; unreadCount:number; }
 export interface RegisterModel { firstName:string; lastName:string; email:string; password:string; phoneNumber:string; userType:'creator'|'runner'|'both'; address:string; idNumber?:string; dateOfBirth?:string; }
 export interface LoginModel { email:string; password:string; }
