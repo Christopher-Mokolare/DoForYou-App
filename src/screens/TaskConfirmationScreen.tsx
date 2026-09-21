@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useDispatch } from 'react-redux';
 import { tasksAPI, disputesAPI } from '../services/api';
-import { updateTaskStatus } from '../store/slices/tasksSlice';
 import { commonStyles } from '../styles/commonStyles';
 import { Task } from '../types';
 
@@ -17,7 +15,6 @@ const TaskConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
   const { task }: { task: Task } = route.params;
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch();
 
   const handleConfirmation = async (confirmed: boolean) => {
     setLoading(true);
@@ -25,7 +22,6 @@ const TaskConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
       const taskId = String(task.taskId || task.id);
       if (confirmed) {
         await tasksAPI.confirmTask(taskId);
-        dispatch(updateTaskStatus({ taskId: task.id.toString(), status: 'Confirmed' }));
         Alert.alert('Task Confirmed!', 'The backend will process the runner payout through the escrow workflow.', [{ text: 'OK', onPress: () => navigation.goBack() }]);
       } else {
         if (!reason.trim()) throw new Error('Please provide a reason.');
@@ -113,7 +109,7 @@ const TaskConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
         <View style={commonStyles.warningCard}>
           <Ionicons name="information-circle" size={24} color={commonStyles.colors.warning} />
           <Text style={commonStyles.warningText}>
-            If you select NO, the runner can appeal this decision to admin for review.
+            If you select NO, the issue will enter the backend dispute workflow for review.
           </Text>
         </View>
       </ScrollView>
