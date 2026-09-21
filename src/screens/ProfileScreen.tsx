@@ -45,11 +45,6 @@ const ProfileScreen = ({ navigation }: any) => {
       onPress: () => navigation.navigate('EditProfile'),
     },
     {
-      title: 'My Wallet',
-      icon: 'wallet-outline',
-      onPress: () => navigation.navigate('Wallet'),
-    },
-    {
       title: 'Bank Details',
       icon: 'card-outline',
       onPress: () => navigation.navigate('BankDetails'),
@@ -63,11 +58,6 @@ const ProfileScreen = ({ navigation }: any) => {
       title: 'Notifications',
       icon: 'notifications-outline',
       onPress: () => navigation.navigate('NotificationSettings'),
-    },
-    {
-      title: 'Payment Methods',
-      icon: 'card-outline',
-      onPress: () => navigation.navigate('PaymentMethods'),
     },
     {
       title: 'Help & Support',
@@ -101,10 +91,8 @@ const ProfileScreen = ({ navigation }: any) => {
             <Text style={styles.statLabel}>Rating</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>
-              R{user?.walletBalance?.toFixed(2) || '0.00'}
-            </Text>
-            <Text style={styles.statLabel}>Balance</Text>
+            <Text style={styles.statNumber}>{user?.userType || 'User'}</Text>
+            <Text style={styles.statLabel}>Role</Text>
           </View>
         </View>
       </View>
