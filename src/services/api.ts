@@ -8,7 +8,8 @@ import {
   UserPreferences, UserWallet, WalletTransaction, WithdrawalRequest,
   UserNotification, PaymentRecord,
   PaginatedResponse, ApiResponse, DashboardStats,
-  TaskFilter,\n  BankDetails,
+  TaskFilter,
+  BankDetails,
 } from '../types';
 
 const api = axios.create({
@@ -34,217 +35,91 @@ api.interceptors.response.use(
 
 export { api };
 
-// ─── Auth ────────────────────────────────────────────────────────────────────
-
 export const authAPI = {
-  register: async (data: RegisterModel): Promise<AuthResponse> => {
-    const r = await api.post('/api/v1/auth/register', data);
-    return r.data;
-  },
-
-  login: async (data: LoginModel): Promise<AuthResponse> => {
-    const r = await api.post('/api/v1/auth/login', data);
-    return r.data;
-  },
-
-  logout: async (): Promise<void> => {
-    await AsyncStorage.removeItem('auth_token');
-  },
+  register: async (data: RegisterModel): Promise<AuthResponse> => (await api.post('/api/v1/auth/register', data)).data,
+  login: async (data: LoginModel): Promise<AuthResponse> => (await api.post('/api/v1/auth/login', data)).data,
+  logout: async (): Promise<void> => { await AsyncStorage.removeItem('auth_token'); },
 };
-
-// ─── User ─────────────────────────────────────────────────────────────────────
 
 export const userAPI = {
-  getProfile: async (): Promise<User> => {
-    const r = await api.get('/api/v1/user/profile');
-    return r.data.data;
-  },
-
-  updateProfile: async (data: Partial<User>): Promise<void> => {
-    await api.put('/api/v1/user/profile', data);
-  },
-
-  getDashboardStats: async (): Promise<DashboardStats> => {
-    const r = await api.get('/api/v1/user/dashboard/stats');
-    return r.data.data;
-  },
-
-  getPreferences: async (): Promise<UserPreferences> => {
-    const r = await api.get('/api/v1/UserPreferences');
-    return r.data.data;
-  },
-
-  updatePreferences: async (data: { userType: string }): Promise<void> => {
-    await api.put('/api/v1/UserPreferences', data);
-  },
+  getProfile: async (): Promise<User> => (await api.get('/api/v1/user/profile')).data.data,
+  updateProfile: async (data: Partial<User>): Promise<void> => { await api.put('/api/v1/user/profile', data); },
+  getDashboardStats: async (): Promise<DashboardStats> => (await api.get('/api/v1/user/dashboard/stats')).data.data,
+  getPreferences: async (): Promise<UserPreferences> => (await api.get('/api/v1/user/preferences')).data.data,
+  updatePreferences: async (data: { userType: string }): Promise<void> => { await api.put('/api/v1/user/preferences', data); },
 };
-
-// ─── Tasks ────────────────────────────────────────────────────────────────────
 
 export const tasksAPI = {
   getAvailableTasks: async (page = 1, pageSize = 10, filters?: TaskFilter): Promise<Task[]> => {
     let url = `/api/v1/tasks/available?page=${page}&pageSize=${pageSize}`;
     if (filters?.search) url += `&search=${encodeURIComponent(filters.search)}`;
     if (filters?.category) url += `&category=${encodeURIComponent(filters.category)}`;
-    const r = await api.get(url);
-    return r.data.tasks ?? [];
+    return (await api.get(url)).data.tasks ?? [];
   },
-
   getMyPostedTasks: async (): Promise<Task[]> => {
     const r = await api.get('/api/v1/tasks/my-posted');
     return r.data.data?.tasks ?? r.data.data ?? [];
   },
-
-  getMyActiveTasks: async (): Promise<Task[]> => {
-    const r = await api.get('/api/v1/tasks/my-active');
-    return r.data.data ?? [];
-  },
-
-  getTaskById: async (taskId: string): Promise<Task> => {
-    const r = await api.get(`/api/v1/tasks/${taskId}`);
-    return r.data.data;
-  },
-
-  createTask: async (data: CreateTaskData): Promise<{ task: Task; paymentUrl: string }> => {
-    const r = await api.post('/api/v1/tasks', data);
-    return r.data.data;
-  },
-
-  claimTask: async (taskId: string, data: ClaimTaskData): Promise<void> => {
-    await api.post(`/api/v1/tasks/${taskId}/claim`, data);
-  },
-
-  completeTask: async (taskId: string): Promise<void> => {
-    await api.post(`/api/v1/tasks/${taskId}/complete`);
-  },
-
-  confirmTask: async (taskId: string): Promise<void> => {
-    await api.post(`/api/v1/tasks/${taskId}/confirm`);
-  },
-
-  getMessages: async (taskId: string): Promise<TaskMessage[]> => {
-    const r = await api.get(`/api/v1/tasks/${taskId}/messages`);
-    return r.data.data ?? [];
-  },
-
-  sendMessage: async (taskId: string, content: string): Promise<void> => {
-    await api.post(`/api/v1/tasks/${taskId}/messages`, { content });
-  },
-
-  getProgress: async (taskId: string): Promise<ProgressUpdate[]> => {
-    const r = await api.get(`/api/v1/tasks/${taskId}/progress`);
-    return r.data.data ?? [];
-  },
-
-  postProgress: async (taskId: string, progressNote: string): Promise<void> => {
-    await api.post(`/api/v1/tasks/${taskId}/progress`, { progressNote });
-  },
-
-  getCategories: async (): Promise<string[]> => {
-    const r = await api.get('/api/v1/categories');
-    return r.data.data ?? [];
-  },
+  getMyActiveTasks: async (): Promise<Task[]> => (await api.get('/api/v1/tasks/my-active')).data.data ?? [],
+  getTaskById: async (taskId: string): Promise<Task> => (await api.get(`/api/v1/tasks/${taskId}`)).data.data,
+  createTask: async (data: CreateTaskData): Promise<{ task: Task; paymentUrl: string }> => (await api.post('/api/v1/tasks', data)).data.data,
+  claimTask: async (taskId: string, data: ClaimTaskData): Promise<void> => { await api.post(`/api/v1/tasks/${taskId}/claim`, data); },
+  completeTask: async (taskId: string): Promise<void> => { await api.post(`/api/v1/tasks/${taskId}/complete`); },
+  confirmTask: async (taskId: string): Promise<void> => { await api.post(`/api/v1/tasks/${taskId}/confirm`); },
+  getMessages: async (taskId: string): Promise<TaskMessage[]> => (await api.get(`/api/v1/tasks/${taskId}/messages`)).data.data ?? [],
+  sendMessage: async (taskId: string, content: string): Promise<void> => { await api.post(`/api/v1/tasks/${taskId}/messages`, { content }); },
+  getProgress: async (taskId: string): Promise<ProgressUpdate[]> => (await api.get(`/api/v1/tasks/${taskId}/progress`)).data.data ?? [],
+  postProgress: async (taskId: string, progressNote: string): Promise<void> => { await api.post(`/api/v1/tasks/${taskId}/progress`, { progressNote }); },
+  getCategories: async (): Promise<string[]> => (await api.get('/api/v1/categories')).data.data ?? [],
 };
 
-// ─── Banking / direct runner payouts ─────────────────────────────────────────
 export const bankingAPI = {
-  getAccounts: async (): Promise<any[]> => { const r = await api.get('/api/v1/banking/accounts'); return r.data.data ?? []; },
-  getBanks: async (): Promise<any[]> => { const r = await api.get('/api/v1/banking/banks'); return r.data.data ?? []; },
-  addAccount: async (data: any): Promise<any> => { const r = await api.post('/api/v1/banking/accounts', data); return r.data.data ?? r.data; },
-  verifyAccount: async (id: number): Promise<any> => { const r = await api.post(`/api/v1/banking/bank-accounts/${id}/verify`); return r.data.data ?? r.data; },
+  getAccounts: async (): Promise<any[]> => (await api.get('/api/v1/banking/accounts')).data.data ?? [],
+  getBanks: async (): Promise<any[]> => (await api.get('/api/v1/banking/banks')).data.data ?? [],
+  addAccount: async (data: any): Promise<any> => (await api.post('/api/v1/banking/accounts', data)).data.data ?? {},
+  verifyAccount: async (id: number): Promise<any> => (await api.post(`/api/v1/banking/bank-accounts/${id}/verify`)).data.data ?? {},
 };
+
 export const disputesAPI = {
-  create: async (taskId: string, issue: string, category: string): Promise<any> => { const r = await api.post('/api/v1/disputes', { taskId, issue, category }); return r.data.data ?? r.data; },
-  getMine: async (): Promise<any[]> => { const r = await api.get('/api/v1/disputes/my'); return r.data.data ?? []; },
+  create: async (taskId: string, issue: string, category: string): Promise<any> => (await api.post('/api/v1/disputes', { taskId, issue, category })).data.data ?? {},
+  getMine: async (): Promise<any[]> => (await api.get('/api/v1/disputes/my')).data.data ?? [],
 };
+
 export const ratingsAPI = {
-  submit: async (taskId: string, ratingValue: number, review?: string): Promise<any> => { const r = await api.post('/api/v1/ratings', { taskId, ratingValue, review }); return r.data.data ?? r.data; },
-  canRate: async (taskId: string): Promise<any> => { const r = await api.get(`/api/v1/ratings/can-rate/${taskId}`); return r.data.data ?? r.data; },
+  submit: async (taskId: string, ratingValue: number, review?: string): Promise<any> => (await api.post('/api/v1/ratings', { taskId, ratingValue, review })).data.data ?? {},
+  canRate: async (taskId: string): Promise<any> => (await api.get(`/api/v1/ratings/can-rate/${taskId}`)).data.data ?? {},
 };
-// ─── Legacy wallet API (retained only for backward compatibility; do not use for runner payouts) ─
 
 export const walletAPI = {
-  getBalance: async (): Promise<UserWallet> => {
-    const r = await api.get('/api/v1/wallet/balance');
-    return r.data.data;
-  },
-
-  getTransactions: async (page = 1, pageSize = 20): Promise<WalletTransaction[]> => {
-    const r = await api.get(`/api/v1/wallet/transactions?page=${page}&pageSize=${pageSize}`);
-    return r.data.data?.items ?? [];
-  },
-
-  requestWithdrawal: async (data: WithdrawalRequest): Promise<void> => {
-    await api.post('/api/v1/wallet/withdraw', data);
-  },
+  getBalance: async (): Promise<UserWallet> => (await api.get('/api/v1/wallet/balance')).data.data,
+  getTransactions: async (page = 1, pageSize = 20): Promise<WalletTransaction[]> => (await api.get(`/api/v1/wallet/transactions?page=${page}&pageSize=${pageSize}`)).data.data?.items ?? [],
+  requestWithdrawal: async (data: WithdrawalRequest): Promise<void> => { await api.post('/api/v1/wallet/withdraw', data); },
 };
-
-// ─── Notifications ────────────────────────────────────────────────────────────
 
 export const notificationsAPI = {
-  getAll: async (): Promise<UserNotification[]> => {
-    const r = await api.get('/api/v1/notifications');
-    return r.data.data ?? [];
-  },
-
-  getUnreadCount: async (): Promise<number> => {
-    const r = await api.get('/api/v1/notifications/unread-count');
-    return r.data.data ?? 0;
-  },
-
-  markRead: async (id: number): Promise<void> => {
-    await api.post(`/api/v1/notifications/${id}/mark-read`);
-  },
-
-  markAllRead: async (): Promise<void> => {
-    await api.post('/api/v1/notifications/mark-all-read');
-  },
+  getAll: async (): Promise<UserNotification[]> => (await api.get('/api/v1/notifications')).data.data ?? [],
+  getUnreadCount: async (): Promise<number> => (await api.get('/api/v1/notifications/unread-count')).data.data ?? 0,
+  markRead: async (id: number): Promise<void> => { await api.post(`/api/v1/notifications/${id}/mark-read`); },
+  markAllRead: async (): Promise<void> => { await api.post('/api/v1/notifications/mark-all-read'); },
 };
-
-// ─── Payment ──────────────────────────────────────────────────────────────────
 
 export const paymentAPI = {
-  getPaymentUrl: async (taskId: string): Promise<string> => {
-    const r = await api.get(`/api/v1/tasks/${taskId}/payment-url`);
-    return r.data.data?.paymentUrl ?? '';
-  },
+  getPaymentUrl: async (taskId: string): Promise<string> => (await api.get(`/api/v1/tasks/${taskId}/payment-url`)).data.data?.paymentUrl ?? '',
 };
 
-// ─── Admin ────────────────────────────────────────────────────────────────────
-
 export const adminAPI = {
-  getDashboard: async (): Promise<any> => {
-    const r = await api.get('/api/v1/admin/dashboard');
-    return r.data.data;
-  },
-
+  getDashboard: async (): Promise<any> => (await api.get('/api/v1/admin/dashboard')).data.data,
   getAllTasks: async (page = 1, pageSize = 20, status?: string): Promise<any> => {
     let url = `/api/v1/admin/tasks?page=${page}&pageSize=${pageSize}`;
     if (status) url += `&taskStatus=${status}`;
-    const r = await api.get(url);
-    return r.data.data;
+    return (await api.get(url)).data.data;
   },
-
-  getAllUsers: async (page = 1, pageSize = 20): Promise<any> => {
-    const r = await api.get(`/api/v1/admin/users?page=${page}&pageSize=${pageSize}`);
-    return r.data.data;
-  },
-
-  getPayments: async (): Promise<any> => {
-    const r = await api.get('/api/v1/admin/payments');
-    return r.data.data;
-  },
-
-  verifyTask: async (taskId: string): Promise<void> => {
-    await api.patch(`/api/v1/admin/tasks/${taskId}/verify`);
-  },
-
-  unverifyTask: async (taskId: string): Promise<void> => {
-    await api.patch(`/api/v1/admin/tasks/${taskId}/unverify`);
-  },
+  getAllUsers: async (page = 1, pageSize = 20): Promise<any> => (await api.get(`/api/v1/admin/users?page=${page}&pageSize=${pageSize}`)).data.data,
+  getPayments: async (): Promise<any> => (await api.get('/api/v1/admin/payments')).data.data,
+  verifyTask: async (taskId: string): Promise<void> => { await api.patch(`/api/v1/admin/tasks/${taskId}/verify`); },
+  unverifyTask: async (taskId: string): Promise<void> => { await api.patch(`/api/v1/admin/tasks/${taskId}/unverify`); },
 };
 
-// Backward compat aliases
 export const errandAPI = {
   getErrands: (filters?: TaskFilter) => tasksAPI.getAvailableTasks(1, 10, filters),
   createErrand: (data: CreateTaskData) => tasksAPI.createTask(data),
