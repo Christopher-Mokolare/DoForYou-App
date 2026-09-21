@@ -58,6 +58,7 @@ export const tasksAPI = {
     if (filters?.category) url += `&category=${encodeURIComponent(filters.category)}`;
     return (await api.get(url)).data.tasks ?? [];
   },
+  getMyTasks: async (): Promise<Task[]> => tasksAPI.getMyPostedTasks(),
   getMyPostedTasks: async (): Promise<Task[]> => {
     const r = await api.get('/api/v1/tasks/my-posted');
     return r.data.data?.tasks ?? r.data.data ?? [];
