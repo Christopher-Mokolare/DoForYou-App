@@ -5,7 +5,7 @@ import {
   User, Task, TaskMessage, ProgressUpdate,
   RegisterModel, LoginModel, AuthResponse,
   CreateTaskData, ClaimTaskData,
-  UserPreferences, UserNotification,
+  UserPreferences, UserNotification, TaskConversation,
   TaskFilter, DashboardStats,
 } from '../types';
 
@@ -112,6 +112,7 @@ export const tasksAPI = {
   },
   getCategories: async (): Promise<string[]> => unwrap(await api.get('/api/v1/categories')) ?? [],
   getPaymentHistory: async (): Promise<any[]> => unwrap(await api.get('/api/v1/tasks/payment-history')) ?? [],
+  getConversations: async (): Promise<TaskConversation[]> => unwrap(await api.get('/api/v1/messages/conversations')) ?? [],
   getPaymentUrl: async (taskId: string): Promise<string> => {
     const r = await api.get(`/api/v1/tasks/${taskId}/payment-url`);
     assertSuccess(r.data, 'Payment is not currently available');
