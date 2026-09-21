@@ -1,4 +1,5 @@
 class CrashReportingService {
+  initialize() {}
   captureException(error: Error, context?: any) {
     console.error('[CrashReporting]', error, context);
   }
