@@ -181,7 +181,7 @@ Platform fee: R${(task.budget * 0.15).toFixed(2)}`,
             </Text>
           </TouchableOpacity>
         )}
-        {String(item.taskStatus || '').toLowerCase() === 'inprogress' || String(item.taskStatus || '').toLowerCase() === 'in_progress' && item.acceptedByUserId === user?.id && (
+        {(String(item.taskStatus || '').toLowerCase() === 'inprogress' || String(item.taskStatus || '').toLowerCase() === 'in_progress') && item.acceptedByUserId === user?.id && (
           <TouchableOpacity
             style={[styles.claimButton, { backgroundColor: '#28a745' }]}
             onPress={() => handleCompleteTask(item.id)}
