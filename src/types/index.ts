@@ -35,7 +35,7 @@ export interface Task {
   userContact: string;
   createdByUserId: number;
   createdByUserName?: string;
-  taskDescription: string;
+  taskTitle?: string;\n  taskDescription: string;
   category: string;
   area: string;
   dateNeeded: string;
@@ -49,7 +49,7 @@ export interface Task {
   escrowStatus?: string;
   canConfirm?: boolean;
   canDispute?: boolean;
-  acceptedByUserId?: number;
+  acceptedByUserId?: number;\n  createdByUser?: User;\n  acceptedByUser?: User;
   runnerId?: number;
   runnerName?: string;
   runnerContact?: string;
