@@ -11,7 +11,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
-import { adminAPI, AdminStats } from '../services/adminService';
+import { adminAPI } from '../services/api';
+import { DashboardStats } from '../types';
 
 interface AdminDashboardScreenProps {
   navigation: any;
@@ -19,7 +20,7 @@ interface AdminDashboardScreenProps {
 
 const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({ navigation }) => {
   const { user } = useSelector((state: RootState) => state.auth);
-  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -29,7 +30,7 @@ const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({ navigation 
   const fetchStats = async () => {
     try {
       setIsLoading(true);
-      const data = await adminAPI.getDashboardStats();
+      const data = await adminAPI.getDashboard();
       setStats(data);
     } catch (error) {
       console.error('Error fetching admin stats:', error);
