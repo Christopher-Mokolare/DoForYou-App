@@ -64,11 +64,13 @@ export const tasksAPI = {
     return r.data.data?.tasks ?? r.data.data ?? [];
   },
   getMyActiveTasks: async (): Promise<Task[]> => (await api.get('/api/v1/tasks/my-active')).data.data ?? [],
+  getMyCompletedTasks: async (): Promise<Task[]> => (await api.get('/api/v1/tasks/my-completed')).data.data ?? [],
   getTaskById: async (taskId: string): Promise<Task> => (await api.get(`/api/v1/tasks/${taskId}`)).data.data,
   createTask: async (data: CreateTaskData): Promise<{ task: Task; paymentUrl: string }> => (await api.post('/api/v1/tasks', data)).data.data,
   claimTask: async (taskId: string, data: ClaimTaskData): Promise<void> => { await api.post(`/api/v1/tasks/${taskId}/claim`, data); },
   completeTask: async (taskId: string): Promise<void> => { await api.post(`/api/v1/tasks/${taskId}/complete`); },
   confirmTask: async (taskId: string): Promise<void> => { await api.post(`/api/v1/tasks/${taskId}/confirm`); },
+  cancelTask: async (taskId: string, reason = 'Cancelled by user'): Promise<void> => { await api.post(`/api/v1/tasks/${taskId}/cancel`, { reason }); },
   getMessages: async (taskId: string): Promise<TaskMessage[]> => (await api.get(`/api/v1/tasks/${taskId}/messages`)).data.data ?? [],
   sendMessage: async (taskId: string, content: string): Promise<void> => { await api.post(`/api/v1/tasks/${taskId}/messages`, { content }); },
   getProgress: async (taskId: string): Promise<ProgressUpdate[]> => (await api.get(`/api/v1/tasks/${taskId}/progress`)).data.data ?? [],
