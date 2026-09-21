@@ -20,7 +20,7 @@ interface PostErrandScreenProps {
 
 const PostErrandScreen: React.FC<PostErrandScreenProps> = ({ navigation }) => {
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [taskDescription: description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [price, setPrice] = useState('');
   const [loading, setLoading] = useState(false);
