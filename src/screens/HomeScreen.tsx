@@ -84,8 +84,7 @@ const HomeScreen = ({ navigation }: any) => {
       'Claim Task',
       `Do you want to claim this task?
 
-You will receive: R${(task.budget * 0.85).toFixed(2)}
-Platform fee: R${(task.budget * 0.15).toFixed(2)}`,
+The backend will determine the final payout and platform fees.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
