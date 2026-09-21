@@ -15,15 +15,12 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store';
-import { createTask, calculatePaymentBreakdown } from '../store/slices/tasksSlice';
-import { paymentAPI } from '../services/api';
+import { createTask } from '../store/slices/tasksSlice';
 import { CreateTaskData, Priority } from '../types';
 
 const PostTaskScreen = ({ navigation }: any) => {
   const dispatch = useDispatch<AppDispatch>();
-  const { paymentBreakdown } = useSelector((state: RootState) => state.tasks);
   const { user } = useSelector((state: RootState) => state.auth);
-  
   const [taskDescription, setTaskDescription] = useState('');
   const [area, setArea] = useState('');
   const [budget, setBudget] = useState('');
@@ -62,15 +59,6 @@ const PostTaskScreen = ({ navigation }: any) => {
     { value: 'low', label: 'Low Priority', color: '#28a745' }
   ];
 
-  React.useEffect(() => {
-    if (budget) {
-      const amount = parseFloat(budget);
-      if (!isNaN(amount)) {
-        dispatch(calculatePaymentBreakdown(amount));
-      }
-    }
-  }, [budget, dispatch]);
-
   const handlePostTask = async () => {
     if (!taskDescription || !area || !budget || !termsAccepted) {
       Alert.alert('Error', 'Please fill in all required fields and accept terms');
@@ -98,6 +86,7 @@ const PostTaskScreen = ({ navigation }: any) => {
 
     const taskData: CreateTaskData = {
       taskDescription,
+      category: 'Other',
       area,
       dateNeeded: dateNeeded.toISOString(),
       budget: budgetAmount,
@@ -123,15 +112,9 @@ Proceed to payment?`,
           onPress: async () => {
             setLoading(true);
             try {
-              // Create task and immediately process payment
               const result = await dispatch(createTask(taskData)).unwrap();
-              
-              // Simulate payment (in production, redirect to PayFast)
-              const paymentResult = await paymentAPI.simulatePaymentSuccess(result.taskId);
-              
-              Alert.alert('Success', 'Task posted successfully and is now live!', [
-                { text: 'OK', onPress: () => navigation.navigate('Home') }
-              ]);
+              if (!result.paymentUrl) throw new Error('Secure payment URL was not returned by the backend.');
+              navigation.navigate('Payment', { task: result.task });
             } catch (error: any) {
               Alert.alert('Payment Failed', 'Task was not created. Please try again.', [
                 { text: 'Retry', onPress: () => handlePostTask() },
