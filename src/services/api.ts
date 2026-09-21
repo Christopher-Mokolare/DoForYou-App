@@ -48,7 +48,7 @@ export const userAPI = {
   updateProfile: async (data: Partial<User>): Promise<void> => { await api.put('/api/v1/user/profile', data); },
   getDashboardStats: async (): Promise<DashboardStats> => (await api.get('/api/v1/user/dashboard/stats')).data.data,
   getPreferences: async (): Promise<UserPreferences> => (await api.get('/api/v1/user/preferences')).data.data,
-  updatePreferences: async (data: { userType: string }): Promise<void> => { await api.put('/api/v1/user/preferences', data); },
+  updatePreferences: async (data: Partial<UserPreferences>): Promise<void> => { await api.put('/api/v1/user/preferences', data); },
 };
 
 export const tasksAPI = {
