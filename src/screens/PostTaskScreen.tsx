@@ -21,6 +21,7 @@ import { CreateTaskData, Priority } from '../types';
 const PostTaskScreen = ({ navigation }: any) => {
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
+  const [taskName, setTaskName] = useState('');
   const [taskDescription, setTaskDescription] = useState('');
   const [area, setArea] = useState('');
   const [budget, setBudget] = useState('');
@@ -60,7 +61,7 @@ const PostTaskScreen = ({ navigation }: any) => {
   ];
 
   const handlePostTask = async () => {
-    if (!taskDescription || !area || !budget || !termsAccepted) {
+    if (!taskName.trim() || taskDescription.trim().length < 20 || !area || !budget || !termsAccepted) {
       Alert.alert('Error', 'Please fill in all required fields and accept terms');
       return;
     }
@@ -71,8 +72,8 @@ const PostTaskScreen = ({ navigation }: any) => {
     }
 
     const budgetAmount = parseFloat(budget);
-    if (isNaN(budgetAmount) || budgetAmount < 20) {
-      Alert.alert('Error', 'Minimum task budget is R20');
+    if (isNaN(budgetAmount) || budgetAmount < 50 || budgetAmount > 100000) {
+      Alert.alert('Error', 'Budget must be between R50 and R100000');
       return;
     }
 
@@ -85,7 +86,8 @@ const PostTaskScreen = ({ navigation }: any) => {
     }
 
     const taskData: CreateTaskData = {
-      taskDescription,
+      taskName: taskName.trim(),
+      taskDescription: taskDescription.trim(),
       category: 'Other',
       area,
       dateNeeded: dateNeeded.toISOString(),
@@ -114,7 +116,7 @@ Proceed to payment?`,
             try {
               const result = await dispatch(createTask(taskData)).unwrap();
               if (!result.paymentUrl) throw new Error('Secure payment URL was not returned by the backend.');
-              navigation.navigate('Payment', { task: result.task });
+              navigation.navigate('Payment', { taskId: result.task.taskId, task: result.task });
             } catch (error: any) {
               Alert.alert('Payment Failed', 'Task was not created. Please try again.', [
                 { text: 'Retry', onPress: () => handlePostTask() },
@@ -254,7 +256,7 @@ Proceed to payment?`,
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Budget (Rands) * <Text style={styles.minBudget}>Min: R20</Text></Text>
+              <Text style={styles.label}>Budget (Rands) * <Text style={styles.minBudget}>Min: R50</Text></Text>
               <View style={[styles.inputContainer, focusedField === 'budget' && styles.inputFocused]}>
                 <Text style={styles.currencySymbol}>R</Text>
                 <TextInput
