@@ -169,7 +169,7 @@ Platform fee: R${(task.budget * 0.15).toFixed(2)}`,
       
       <View style={styles.taskFooter}>
         <View style={styles.posterInfo}>
-          <Text style={styles.posterName}>By: {item.createdByUserName}</Text>
+          <Text style={styles.posterName}>By: {item.createdByUser?.name || `${item.createdByUser?.firstName || ''} ${item.createdByUser?.lastName || ''}`.trim() || 'Task creator'}</Text>
         </View>
         {String(item.taskStatus || '').toLowerCase() === 'posted' && (
           <TouchableOpacity
