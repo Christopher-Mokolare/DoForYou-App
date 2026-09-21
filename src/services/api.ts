@@ -39,6 +39,8 @@ export const authAPI = {
   register: async (data: RegisterModel): Promise<AuthResponse> => (await api.post('/api/v1/auth/register', data)).data,
   login: async (data: LoginModel): Promise<AuthResponse> => (await api.post('/api/v1/auth/login', data)).data,
   logout: async (): Promise<void> => { await AsyncStorage.removeItem('auth_token'); },
+  forgotPassword: async (data: { email: string }): Promise<{ message: string }> => (await api.post('/api/v1/auth/forgot-password', data)).data,
+  resendVerification: async (email: string): Promise<{ message: string }> => (await api.post('/api/v1/auth/resend-verification', { email })).data,
 };
 
 export const userAPI = {
