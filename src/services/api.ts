@@ -156,7 +156,7 @@ export const adminAPI = {
   unverifyTask: async (taskId: string): Promise<void> => { const r = await api.patch(`/api/v1/admin/tasks/${taskId}/unverify`); assertSuccess(r.data); },
 };
 
-export const errandAPI = {
+export const paymentAPI = {\n  getPaymentUrl: (taskId: string) => tasksAPI.getPaymentUrl(taskId),\n};\n\nexport const errandAPI = {
   getErrands: (filters?: TaskFilter) => tasksAPI.getAvailableTasks(1, 10, filters),
   createErrand: (data: CreateTaskData) => tasksAPI.createTask(data),
   getMyErrands: () => tasksAPI.getMyPostedTasks(),
