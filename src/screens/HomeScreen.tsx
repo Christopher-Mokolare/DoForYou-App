@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
 import { fetchAvailableTasks, claimTask, setCurrentTask } from '../store/slices/tasksSlice';
-import { errandAPI } from '../services/api';
+import { tasksAPI } from '../services/api';
 import { Task, TaskFilter, Priority } from '../types';
 
 const HomeScreen = ({ navigation }: any) => {
@@ -62,17 +62,13 @@ const HomeScreen = ({ navigation }: any) => {
       task.area.toLowerCase().includes(searchTerm.toLowerCase());
     
     // Show posted tasks for claiming, and user's accepted tasks for progress
-    const isRelevant = task.taskStatus === 'Posted' ||
-      (task.acceptedByUserId === user?.id && task.taskStatus === 'Claimed');
+    const normalizedStatus = String(task.taskStatus || '').toLowerCase();
+    const isRelevant = normalizedStatus === 'posted' ||
+      (task.acceptedByUserId === user?.id && normalizedStatus === 'claimed');
     
-    console.log(`Task ${task.id}: status=${task.taskStatus}, isRelevant=${isRelevant}, matchesSearch=${matchesSearch}`);
     return matchesSearch && isRelevant;
   });
   
-  console.log('HomeScreen: Available tasks:', availableTasks.length);
-  console.log('HomeScreen: Filtered tasks:', filteredTasks.length);
-  console.log('HomeScreen: Search term:', searchTerm);
-
   const handleClaimTask = async (task: Task) => {
     if (task.createdByUserId === user?.id) {
       Alert.alert('Error', 'You cannot claim your own task');
@@ -99,7 +95,8 @@ Platform fee: R${(task.budget * 0.15).toFixed(2)}`,
               await dispatch(claimTask({
                 taskId: task.taskId,
                 helperName: `${user.firstName} ${user.lastName}`,
-                helperContact: user.phoneNumber
+                helperContact: user.phoneNumber,
+                termsAccepted: true
               })).unwrap();
               Alert.alert('Success', 'Task claimed successfully!');
             } catch (error: any) {
@@ -109,16 +106,6 @@ Platform fee: R${(task.budget * 0.15).toFixed(2)}`,
         }
       ]
     );
-  };
-
-  const handleStartTask = async (taskId: number) => {
-    try {
-      await errandAPI.startErrand(taskId.toString());
-      Alert.alert('Success', 'Task started!');
-      dispatch(fetchAvailableTasks({}));
-    } catch (error) {
-      Alert.alert('Error', 'Failed to start task');
-    }
   };
 
   const handleCompleteTask = async (taskId: number) => {
@@ -131,7 +118,7 @@ Platform fee: R${(task.budget * 0.15).toFixed(2)}`,
           text: 'Mark Complete',
           onPress: async () => {
             try {
-              await errandAPI.completeErrand(taskId.toString());
+              await tasksAPI.completeTask(taskId.toString());
               Alert.alert('Success', 'Task marked as completed! Waiting for poster confirmation.');
               dispatch(fetchAvailableTasks({}));
             } catch (error) {
@@ -157,7 +144,7 @@ Platform fee: R${(task.budget * 0.15).toFixed(2)}`,
         </View>
         <View style={styles.priceContainer}>
           <Text style={styles.taskPrice}>R{item.budget}</Text>
-          <Text style={styles.runnerAmount}>You get: R{(item.budget * 0.85).toFixed(0)}</Text>
+
         </View>
       </View>
       
@@ -182,9 +169,9 @@ Platform fee: R${(task.budget * 0.15).toFixed(2)}`,
       
       <View style={styles.taskFooter}>
         <View style={styles.posterInfo}>
-          <Text style={styles.posterName}>By: {item.createdByUserName}</Text>
+          <Text style={styles.posterName}>By: {item.createdByUser?.name || `${item.createdByUser?.firstName || ''} ${item.createdByUser?.lastName || ''}`.trim() || 'Task creator'}</Text>
         </View>
-        {item.taskStatus === 'posted' && (
+        {String(item.taskStatus || '').toLowerCase() === 'posted' && (
           <TouchableOpacity
             style={[styles.claimButton, item.priority === 'urgent' && styles.urgentButton]}
             onPress={() => handleClaimTask(item)}
@@ -194,15 +181,7 @@ Platform fee: R${(task.budget * 0.15).toFixed(2)}`,
             </Text>
           </TouchableOpacity>
         )}
-        {item.taskStatus === 'claimed' && item.acceptedByUserId === user?.id && (
-          <TouchableOpacity
-            style={[styles.claimButton, { backgroundColor: '#17a2b8' }]}
-            onPress={() => handleStartTask(item.id)}
-          >
-            <Text style={styles.claimButtonText}>Start Task</Text>
-          </TouchableOpacity>
-        )}
-        {item.taskStatus === 'in_progress' && item.acceptedByUserId === user?.id && (
+        {String(item.taskStatus || '').toLowerCase() === 'inprogress' || String(item.taskStatus || '').toLowerCase() === 'in_progress' && item.acceptedByUserId === user?.id && (
           <TouchableOpacity
             style={[styles.claimButton, { backgroundColor: '#28a745' }]}
             onPress={() => handleCompleteTask(item.id)}

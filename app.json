@@ -79,5 +79,9 @@
       }
     },
     "owner": "chrismokolare"
-  }
+  },
+  "platforms": [
+    "ios",
+    "android"
+  ]
 }

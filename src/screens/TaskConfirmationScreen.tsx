@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useDispatch } from 'react-redux';
-import { tasksAPI } from '../services/api';
-import { updateTaskStatus } from '../store/slices/tasksSlice';
+import { tasksAPI, disputesAPI } from '../services/api';
 import { commonStyles } from '../styles/commonStyles';
 import { Task } from '../types';
 
@@ -17,44 +15,27 @@ const TaskConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
   const { task }: { task: Task } = route.params;
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch();
 
   const handleConfirmation = async (confirmed: boolean) => {
     setLoading(true);
     try {
-      const confirmationData = {
-        taskId: task.id,
-        confirmed,
-        reason: confirmed ? undefined : reason.trim()
-      };
-
-      const updatedTask = await tasksAPI.confirmCompletion(task.id, confirmationData);
-      dispatch(updateTaskStatus({ taskId: task.id, status: updatedTask.taskStatus }));
-
+      const taskId = String(task.taskId || task.id);
       if (confirmed) {
-        Alert.alert(
-          'Task Confirmed!',
-          `Payment of R${task.runnerAmount} has been processed to the runner.`,
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
-        );
+        await tasksAPI.confirmTask(taskId);
+        Alert.alert('Task Confirmed!', 'The backend will process the runner payout through the escrow workflow.', [{ text: 'OK', onPress: () => navigation.goBack() }]);
       } else {
-        Alert.alert(
-          'Task Rejected',
-          'The runner has been notified and can appeal this decision.',
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
-        );
+        if (!reason.trim()) throw new Error('Please provide a reason.');
+        await disputesAPI.create(taskId, reason.trim(), 'Completion');
+        Alert.alert('Dispute Raised', 'The issue has been submitted for dispute review.', [{ text: 'OK', onPress: () => navigation.goBack() }]);
       }
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.message || 'Failed to process confirmation');
-    } finally {
-      setLoading(false);
-    }
+      Alert.alert('Error', error.response?.data?.message || error.message || 'Failed to process completion.');
+    } finally { setLoading(false); }
   };
 
   const paymentBreakdown = {
     originalAmount: task.budget,
-    platformFee: task.platformFee,
-    runnerAmount: task.runnerAmount
+    payoutAmount: task.payoutAmount ?? task.budget
   };
 
   return (
@@ -81,13 +62,9 @@ const TaskConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text>Original Amount:</Text>
             <Text style={commonStyles.amount}>R{paymentBreakdown.originalAmount}</Text>
           </View>
-          <View style={commonStyles.paymentRow}>
-            <Text>Platform Fee (15%):</Text>
-            <Text style={commonStyles.fee}>-R{paymentBreakdown.platformFee}</Text>
-          </View>
           <View style={[commonStyles.paymentRow, commonStyles.totalRow]}>
-            <Text style={commonStyles.totalText}>Runner Payment:</Text>
-            <Text style={commonStyles.totalAmount}>R{paymentBreakdown.runnerAmount}</Text>
+            <Text style={commonStyles.totalText}>Runner Payout:</Text>
+            <Text style={commonStyles.totalAmount}>R{paymentBreakdown.payoutAmount}</Text>
           </View>
         </View>
 
@@ -101,12 +78,12 @@ const TaskConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
           >
             <Ionicons name="checkmark-circle" size={24} color="white" />
             <Text style={commonStyles.confirmButtonText}>
-              YES - Task Completed (Pay Runner)
+              YES - Confirm Completion
             </Text>
           </TouchableOpacity>
 
           <View style={commonStyles.inputContainer}>
-            <Text style={commonStyles.label}>Reason for rejection (if NO):</Text>
+            <Text style={commonStyles.label}>Reason for dispute</Text>
             <TextInput
               style={[commonStyles.input, commonStyles.textArea]}
               value={reason}
@@ -124,7 +101,7 @@ const TaskConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
           >
             <Ionicons name="close-circle" size={24} color="white" />
             <Text style={commonStyles.rejectButtonText}>
-              NO - Task Not Completed
+              NO - Raise Dispute
             </Text>
           </TouchableOpacity>
         </View>
@@ -132,7 +109,7 @@ const TaskConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
         <View style={commonStyles.warningCard}>
           <Ionicons name="information-circle" size={24} color={commonStyles.colors.warning} />
           <Text style={commonStyles.warningText}>
-            If you select NO, the runner can appeal this decision to admin for review.
+            If you select NO, the issue will enter the backend dispute workflow for review.
           </Text>
         </View>
       </ScrollView>

@@ -15,15 +15,13 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store';
-import { createTask, calculatePaymentBreakdown } from '../store/slices/tasksSlice';
-import { paymentAPI } from '../services/api';
+import { createTask } from '../store/slices/tasksSlice';
 import { CreateTaskData, Priority } from '../types';
 
 const PostTaskScreen = ({ navigation }: any) => {
   const dispatch = useDispatch<AppDispatch>();
-  const { paymentBreakdown } = useSelector((state: RootState) => state.tasks);
   const { user } = useSelector((state: RootState) => state.auth);
-  
+  const [taskName, setTaskName] = useState('');
   const [taskDescription, setTaskDescription] = useState('');
   const [area, setArea] = useState('');
   const [budget, setBudget] = useState('');
@@ -62,17 +60,8 @@ const PostTaskScreen = ({ navigation }: any) => {
     { value: 'low', label: 'Low Priority', color: '#28a745' }
   ];
 
-  React.useEffect(() => {
-    if (budget) {
-      const amount = parseFloat(budget);
-      if (!isNaN(amount)) {
-        dispatch(calculatePaymentBreakdown(amount));
-      }
-    }
-  }, [budget, dispatch]);
-
   const handlePostTask = async () => {
-    if (!taskDescription || !area || !budget || !termsAccepted) {
+    if (!taskName.trim() || taskDescription.trim().length < 20 || !area || !budget || !termsAccepted) {
       Alert.alert('Error', 'Please fill in all required fields and accept terms');
       return;
     }
@@ -83,8 +72,8 @@ const PostTaskScreen = ({ navigation }: any) => {
     }
 
     const budgetAmount = parseFloat(budget);
-    if (isNaN(budgetAmount) || budgetAmount < 20) {
-      Alert.alert('Error', 'Minimum task budget is R20');
+    if (isNaN(budgetAmount) || budgetAmount < 50 || budgetAmount > 100000) {
+      Alert.alert('Error', 'Budget must be between R50 and R100000');
       return;
     }
 
@@ -97,7 +86,9 @@ const PostTaskScreen = ({ navigation }: any) => {
     }
 
     const taskData: CreateTaskData = {
-      taskDescription,
+      taskName: taskName.trim(),
+      taskDescription: taskDescription.trim(),
+      category: 'Other',
       area,
       dateNeeded: dateNeeded.toISOString(),
       budget: budgetAmount,
@@ -108,14 +99,7 @@ const PostTaskScreen = ({ navigation }: any) => {
 
     Alert.alert(
       'Confirm Task Posting',
-      `You will pay R${budgetAmount} upfront.
-
-Breakdown:
-• Task budget: R${budgetAmount}
-• Platform fee (15%): R${(budgetAmount * 0.15).toFixed(2)}
-• Runner receives: R${(budgetAmount * 0.85).toFixed(2)}
-
-Proceed to payment?`,
+      `You will pay R${budgetAmount} upfront. The backend will calculate the platform commission and runner payout.\n\nProceed to secure payment?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -123,15 +107,9 @@ Proceed to payment?`,
           onPress: async () => {
             setLoading(true);
             try {
-              // Create task and immediately process payment
               const result = await dispatch(createTask(taskData)).unwrap();
-              
-              // Simulate payment (in production, redirect to PayFast)
-              const paymentResult = await paymentAPI.simulatePaymentSuccess(result.taskId);
-              
-              Alert.alert('Success', 'Task posted successfully and is now live!', [
-                { text: 'OK', onPress: () => navigation.navigate('Home') }
-              ]);
+              if (!result.paymentUrl) throw new Error('Secure payment URL was not returned by the backend.');
+              navigation.navigate('Payment', { taskId: result.task.taskId, task: result.task });
             } catch (error: any) {
               Alert.alert('Payment Failed', 'Task was not created. Please try again.', [
                 { text: 'Retry', onPress: () => handlePostTask() },
@@ -162,6 +140,14 @@ Proceed to payment?`,
           </View>
 
           <View style={styles.formContainer}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Task Name *</Text>
+              <View style={[styles.inputContainer, focusedField === 'taskName' && styles.inputFocused]}>
+                <Ionicons name="clipboard-outline" size={20} color={focusedField === 'taskName' ? '#ff6b35' : '#666'} />
+                <TextInput style={styles.input} placeholder="Short task name" placeholderTextColor="#999" value={taskName} onChangeText={setTaskName} onFocus={() => setFocusedField('taskName')} onBlur={() => setFocusedField('')} />
+              </View>
+            </View>
+
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Task Description *</Text>
               <View style={[styles.inputContainer, styles.textAreaContainer, focusedField === 'description' && styles.inputFocused]}>
@@ -271,7 +257,7 @@ Proceed to payment?`,
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Budget (Rands) * <Text style={styles.minBudget}>Min: R20</Text></Text>
+              <Text style={styles.label}>Budget (Rands) * <Text style={styles.minBudget}>Min: R50</Text></Text>
               <View style={[styles.inputContainer, focusedField === 'budget' && styles.inputFocused]}>
                 <Text style={styles.currencySymbol}>R</Text>
                 <TextInput
@@ -285,14 +271,6 @@ Proceed to payment?`,
                   onBlur={() => setFocusedField('')}
                 />
               </View>
-              {paymentBreakdown && (
-                <View style={styles.paymentBreakdown}>
-                  <Text style={styles.breakdownTitle}>Payment Breakdown:</Text>
-                  <Text style={styles.breakdownItem}>• You pay: R{paymentBreakdown.originalAmount}</Text>
-                  <Text style={styles.breakdownItem}>• Platform fee (15%): R{paymentBreakdown.platformFee.toFixed(2)}</Text>
-                  <Text style={styles.breakdownItem}>• Runner receives: R{paymentBreakdown.runnerAmount.toFixed(2)}</Text>
-                </View>
-              )}
             </View>
 
             <View style={styles.inputGroup}>

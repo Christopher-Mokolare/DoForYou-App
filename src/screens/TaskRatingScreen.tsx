@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { tasksAPI } from '../services/api';
+import { ratingsAPI } from '../services/api';
 import { commonStyles } from '../styles/commonStyles';
 import { colors } from '../styles/commonStyles';
 import { Task } from '../types';
@@ -26,7 +26,7 @@ const TaskRatingScreen: React.FC<Props> = ({ navigation, route }) => {
 
     setLoading(true);
     try {
-      await tasksAPI.rateTask(task.id, rating, comment.trim() || undefined);
+      await ratingsAPI.submit(String(task.taskId || task.id), rating, comment.trim() || undefined);
       Alert.alert(
         'Rating Submitted',
         'Thank you for your feedback!',
@@ -84,7 +84,7 @@ const TaskRatingScreen: React.FC<Props> = ({ navigation, route }) => {
           {userType === 'creator' ? (
             <Text style={commonStyles.taskHelper}>Completed by: {task.helperName}</Text>
           ) : (
-            <Text style={commonStyles.taskHelper}>Posted by: {task.createdByUserName}</Text>
+            <Text style={commonStyles.taskHelper}>Posted by: {task.createdByUser?.name || `${task.createdByUser?.firstName || ''} ${task.createdByUser?.lastName || ''}`.trim() || 'Task creator'}</Text>
           )}
         </View>
 

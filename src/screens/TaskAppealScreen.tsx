@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { tasksAPI } from '../services/api';
+import { disputesAPI } from '../services/api';
 import { commonStyles } from '../styles/commonStyles';
 import { Task } from '../types';
 
@@ -24,7 +24,7 @@ const TaskAppealScreen: React.FC<Props> = ({ navigation, route }) => {
 
     setLoading(true);
     try {
-      await tasksAPI.appealTask(task.id, reason.trim());
+      await disputesAPI.create(String(task.taskId || task.id), reason.trim(), 'Task');
       Alert.alert(
         'Appeal Submitted',
         'Your appeal has been submitted to admin for review. You will be notified within 24 hours.',
@@ -43,7 +43,7 @@ const TaskAppealScreen: React.FC<Props> = ({ navigation, route }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={commonStyles.colors.primary} />
         </TouchableOpacity>
-        <Text style={commonStyles.headerTitle}>Appeal Task Rejection</Text>
+        <Text style={commonStyles.headerTitle}>Raise a Task Dispute</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -52,18 +52,18 @@ const TaskAppealScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={commonStyles.cardTitle}>Task Details</Text>
           <Text style={commonStyles.taskDescription}>{task.taskDescription}</Text>
           <Text style={commonStyles.taskArea}>Area: {task.area}</Text>
-          <Text style={commonStyles.taskBudget}>Payment: R{task.runnerAmount}</Text>
+          <Text style={commonStyles.taskBudget}>Task budget: R{task.budget}</Text>
         </View>
 
         <View style={commonStyles.warningCard}>
           <Ionicons name="information-circle" size={24} color={commonStyles.colors.warning} />
           <Text style={commonStyles.warningText}>
-            The task creator has rejected your completion. You can appeal this decision to admin for review.
+            Use this form when there is a task-related issue requiring review. Disputes are handled through the platform dispute workflow.
           </Text>
         </View>
 
         <View style={commonStyles.card}>
-          <Text style={commonStyles.cardTitle}>Appeal Reason</Text>
+          <Text style={commonStyles.cardTitle}>Dispute Details</Text>
           <Text style={commonStyles.subtitle}>
             Explain why you believe the task was completed satisfactorily:
           </Text>
@@ -88,7 +88,7 @@ const TaskAppealScreen: React.FC<Props> = ({ navigation, route }) => {
             disabled={loading || !reason.trim()}
           >
             <Text style={commonStyles.primaryButtonText}>
-              {loading ? 'Submitting Appeal...' : 'Submit Appeal to Admin'}
+              {loading ? 'Submitting Dispute...' : 'Submit Dispute'}
             </Text>
           </TouchableOpacity>
 

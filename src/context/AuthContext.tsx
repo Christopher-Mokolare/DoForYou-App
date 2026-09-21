@@ -5,7 +5,6 @@ import { login, register, logout as logoutAction, initializeAuth } from '../stor
 import { LoginModel, RegisterModel, User } from '../types';
 import { storeTokens, clearTokens } from '../utils/tokenStorage';
 
-
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
@@ -20,32 +19,19 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const { user, isAuthenticated, isLoading, error, token, refreshToken } = useSelector(
-    (state: RootState) => state.auth
-  );
+  const { user, isAuthenticated, isLoading, error, token } = useSelector((state: RootState) => state.auth);
+
+  useEffect(() => { dispatch(initializeAuth()); }, [dispatch]);
 
   useEffect(() => {
-    // Initialize auth state from storage on app startup
-    dispatch(initializeAuth());
-  }, [dispatch]);
-
-  useEffect(() => {
-    // Store tokens when they change
-    if (token && refreshToken) {
-      storeTokens(token, refreshToken);
-    }
-  }, [token, refreshToken]);
-
-
+    if (token) void storeTokens(token, '');
+  }, [token]);
 
   const handleLogin = async (credentials: LoginModel) => {
     const result = await dispatch(login(credentials));
     if (login.fulfilled.match(result)) {
-      // Store tokens after successful login
-      const { token, refreshToken } = result.payload;
-      if (token) {
-        await storeTokens(token, refreshToken || '');
-      }
+      const { token } = result.payload;
+      if (token) await storeTokens(token, '');
     } else {
       throw new Error(result.payload as string);
     }
@@ -53,11 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleRegister = async (userData: RegisterModel) => {
     const result = await dispatch(register(userData));
-    if (register.fulfilled.match(result)) {
-      // Registration successful
-    } else {
-      throw new Error(result.payload as string);
-    }
+    if (!register.fulfilled.match(result)) throw new Error(result.payload as string);
   };
 
   const handleLogout = async () => {
@@ -65,18 +47,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     dispatch(logoutAction());
   };
 
-  const value: AuthContextType = {
-    user,
-    isAuthenticated,
-    isLoading,
-    error,
-    login: handleLogin,
-    register: handleRegister,
-    logout: handleLogout
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, error, login: handleLogin, register: handleRegister, logout: handleLogout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -84,8 +56,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };

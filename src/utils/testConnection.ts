@@ -11,10 +11,7 @@ export const testBackendConnection = async (): Promise<{
     
     // Test basic connectivity
     const healthResponse = await axios.get(`${config.api.baseUrl.replace('/api', '')}/health`, {
-      timeout: 5000,
-      headers: {
-        'X-API-Key': config.api.apiKey
-      }
+      timeout: 5000
     });
     
     return {
@@ -22,13 +19,13 @@ export const testBackendConnection = async (): Promise<{
       message: 'Successfully connected to C# .NET backend',
       details: {
         status: healthResponse.status,
-        environment: config.name,
+        environment: process.env.EXPO_PUBLIC_ENVIRONMENT || 'development',
         baseUrl: config.api.baseUrl
       }
     };
   } catch (error: any) {
     let message = 'Failed to connect to backend';
-    let details: any = { environment: config.name, baseUrl: config.api.baseUrl };
+    let details: any = { environment: process.env.EXPO_PUBLIC_ENVIRONMENT || 'development', baseUrl: config.api.baseUrl };
     
     if (error.code === 'ECONNREFUSED') {
       message = 'Backend server is not running. Please start your C# .NET API on port 5015';
@@ -63,10 +60,7 @@ export const testApiEndpoints = async (): Promise<{
   for (const endpoint of endpoints) {
     try {
       const response = await axios.get(endpoint.url, {
-        timeout: 5000,
-        headers: {
-          'X-API-Key': config.api.apiKey
-        }
+        timeout: 5000
       });
       
       results.push({

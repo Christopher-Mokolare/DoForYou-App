@@ -9,10 +9,10 @@ class BiometricService {
   }
 
   async getSupportedTypes(): Promise<LocalAuthentication.AuthenticationType[]> {
-    return await LocalAuthentication.supportedAuthenticationTypesAsync();
+    return LocalAuthentication.supportedAuthenticationTypesAsync();
   }
 
-  async authenticate(reason: string = 'Authenticate to access your account'): Promise<boolean> {
+  async authenticate(reason = 'Authenticate to access your account'): Promise<boolean> {
     try {
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: reason,
@@ -20,7 +20,6 @@ class BiometricService {
         fallbackLabel: 'Use Password',
         disableDeviceFallback: false,
       });
-
       return result.success;
     } catch (error) {
       console.error('Biometric authentication error:', error);
@@ -61,4 +60,4 @@ class BiometricService {
   }
 }
 
-export const biometricService = new BiometricService();"
+export const biometricService = new BiometricService();
