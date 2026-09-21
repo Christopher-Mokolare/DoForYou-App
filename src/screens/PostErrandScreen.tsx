@@ -20,7 +20,7 @@ interface PostErrandScreenProps {
 
 const PostErrandScreen: React.FC<PostErrandScreenProps> = ({ navigation }) => {
   const [title, setTitle] = useState('');
-  const [taskDescription: description, setDescription] = useState('');
+  const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [price, setPrice] = useState('');
   const [loading, setLoading] = useState(false);
@@ -38,9 +38,13 @@ const PostErrandScreen: React.FC<PostErrandScreenProps> = ({ navigation }) => {
     try {
       await errandAPI.createErrand({
         title,
-        description,
+        taskDescription: description,
         category,
-        price: parseFloat(price),
+        area: 'Other',
+        dateNeeded: new Date(Date.now() + 86400000).toISOString(),
+        budget: parseFloat(price),
+        priority: 'Standard',
+        termsAccepted: true,
       });
       Alert.alert('Success', 'Errand posted successfully!', [
         { text: 'OK', onPress: () => navigation.goBack() }
