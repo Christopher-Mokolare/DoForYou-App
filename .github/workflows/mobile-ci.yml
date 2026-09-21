@@ -8,7 +8,7 @@ on:
       - align/current-dfy-fe-be
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   typecheck:
