@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
 import { fetchAvailableTasks, claimTask, setCurrentTask } from '../store/slices/tasksSlice';
-import { errandAPI } from '../services/api';
+import { tasksAPI } from '../services/api';
 import { Task, TaskFilter, Priority } from '../types';
 
 const HomeScreen = ({ navigation }: any) => {
@@ -111,16 +111,6 @@ Platform fee: R${(task.budget * 0.15).toFixed(2)}`,
     );
   };
 
-  const handleStartTask = async (taskId: number) => {
-    try {
-      await errandAPI.startErrand(taskId.toString());
-      Alert.alert('Success', 'Task started!');
-      dispatch(fetchAvailableTasks({}));
-    } catch (error) {
-      Alert.alert('Error', 'Failed to start task');
-    }
-  };
-
   const handleCompleteTask = async (taskId: number) => {
     Alert.alert(
       'Complete Task',
@@ -131,7 +121,7 @@ Platform fee: R${(task.budget * 0.15).toFixed(2)}`,
           text: 'Mark Complete',
           onPress: async () => {
             try {
-              await errandAPI.completeErrand(taskId.toString());
+              await tasksAPI.completeTask(taskId.toString());
               Alert.alert('Success', 'Task marked as completed! Waiting for poster confirmation.');
               dispatch(fetchAvailableTasks({}));
             } catch (error) {
@@ -157,7 +147,7 @@ Platform fee: R${(task.budget * 0.15).toFixed(2)}`,
         </View>
         <View style={styles.priceContainer}>
           <Text style={styles.taskPrice}>R{item.budget}</Text>
-          <Text style={styles.runnerAmount}>You get: R{(item.budget * 0.85).toFixed(0)}</Text>
+
         </View>
       </View>
       
@@ -194,15 +184,7 @@ Platform fee: R${(task.budget * 0.15).toFixed(2)}`,
             </Text>
           </TouchableOpacity>
         )}
-        {item.taskStatus === 'claimed' && item.acceptedByUserId === user?.id && (
-          <TouchableOpacity
-            style={[styles.claimButton, { backgroundColor: '#17a2b8' }]}
-            onPress={() => handleStartTask(item.id)}
-          >
-            <Text style={styles.claimButtonText}>Start Task</Text>
-          </TouchableOpacity>
-        )}
-        {item.taskStatus === 'in_progress' && item.acceptedByUserId === user?.id && (
+        {item.taskStatus === 'InProgress' && item.acceptedByUserId === user?.id && (
           <TouchableOpacity
             style={[styles.claimButton, { backgroundColor: '#28a745' }]}
             onPress={() => handleCompleteTask(item.id)}
