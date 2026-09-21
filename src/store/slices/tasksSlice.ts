@@ -5,6 +5,7 @@ import { tasksAPI } from '../../services/api';
 interface TasksState {
   availableTasks: Task[];
   myPostedTasks: Task[];
+  userTasks: Task[];
   myActiveTasks: Task[];
   currentTask: Task | null;
   isLoading: boolean;
@@ -15,6 +16,7 @@ interface TasksState {
 const initialState: TasksState = {
   availableTasks: [],
   myPostedTasks: [],
+  userTasks: [],
   myActiveTasks: [],
   currentTask: null,
   isLoading: false,
@@ -133,6 +135,7 @@ const tasksSlice = createSlice({
       })
       .addCase(fetchMyPostedTasks.fulfilled, (state, action) => {
         state.myPostedTasks = action.payload;
+        state.userTasks = action.payload;
       })
       .addCase(fetchMyActiveTasks.fulfilled, (state, action) => {
         state.myActiveTasks = action.payload;
