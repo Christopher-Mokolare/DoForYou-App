@@ -3,7 +3,9 @@ name: Mobile CI
 on:
   pull_request:
   push:
-    branches: [main]
+    branches:
+      - main
+      - align/current-dfy-fe-be
 
 jobs:
   typecheck:
