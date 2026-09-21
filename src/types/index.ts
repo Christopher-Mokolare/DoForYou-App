@@ -44,7 +44,11 @@ export interface Task {
   paymentStatus: PaymentStatus;
   taskStatus: TaskStatus;
   helperName?: string;
-  helperContact?: string;\n  payoutAmount?: number;\n  escrowStatus?: string;\n  canConfirm?: boolean;\n  canDispute?: boolean;
+  helperContact?: string;
+  payoutAmount?: number;
+  escrowStatus?: string;
+  canConfirm?: boolean;
+  canDispute?: boolean;
   acceptedByUserId?: number;
   runnerId?: number;
   runnerName?: string;
