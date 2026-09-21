@@ -22,39 +22,24 @@ const TaskConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
   const handleConfirmation = async (confirmed: boolean) => {
     setLoading(true);
     try {
-      const confirmationData = {
-        taskId: task.id,
-        confirmed,
-        reason: confirmed ? undefined : reason.trim()
-      };
-
-      const updatedTask = await tasksAPI.confirmCompletion(task.id, confirmationData);
-      dispatch(updateTaskStatus({ taskId: task.id, status: updatedTask.taskStatus }));
-
+      const taskId = String(task.taskId || task.id);
       if (confirmed) {
-        Alert.alert(
-          'Task Confirmed!',
-          `The task has been confirmed. The backend will process the runner payout from the escrow workflow.`,
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
-        );
+        await tasksAPI.confirmTask(taskId);
+        dispatch(updateTaskStatus({ taskId: task.id.toString(), status: 'Confirmed' }));
+        Alert.alert('Task Confirmed!', 'The backend will process the runner payout through the escrow workflow.', [{ text: 'OK', onPress: () => navigation.goBack() }]);
       } else {
-        Alert.alert(
-          'Task Rejected',
-          'The runner has been notified and can appeal this decision.',
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
-        );
+        if (!reason.trim()) throw new Error('Please provide a reason.');
+        await disputesAPI.create(taskId, reason.trim(), 'Completion');
+        Alert.alert('Dispute Raised', 'The issue has been submitted for dispute review.', [{ text: 'OK', onPress: () => navigation.goBack() }]);
       }
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.message || 'Failed to process confirmation');
-    } finally {
-      setLoading(false);
-    }
+      Alert.alert('Error', error.response?.data?.message || error.message || 'Failed to process completion.');
+    } finally { setLoading(false); }
   };
 
   const paymentBreakdown = {
     originalAmount: task.budget,
-    platformFee: task.platformFee,
-    runnerAmount: task.runnerAmount
+    payoutAmount: task.payoutAmount ?? task.budget
   };
 
   return (
@@ -81,13 +66,9 @@ const TaskConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text>Original Amount:</Text>
             <Text style={commonStyles.amount}>R{paymentBreakdown.originalAmount}</Text>
           </View>
-          <View style={commonStyles.paymentRow}>
-            <Text>Platform Fee (15%):</Text>
-            <Text style={commonStyles.fee}>-R{paymentBreakdown.platformFee}</Text>
-          </View>
           <View style={[commonStyles.paymentRow, commonStyles.totalRow]}>
-            <Text style={commonStyles.totalText}>Runner Payment:</Text>
-            <Text style={commonStyles.totalAmount}>R{paymentBreakdown.runnerAmount}</Text>
+            <Text style={commonStyles.totalText}>Runner Payout:</Text>
+            <Text style={commonStyles.totalAmount}>R{paymentBreakdown.payoutAmount}</Text>
           </View>
         </View>
 
@@ -106,7 +87,7 @@ const TaskConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
           </TouchableOpacity>
 
           <View style={commonStyles.inputContainer}>
-            <Text style={commonStyles.label}>Reason for rejection (if NO):</Text>
+            <Text style={commonStyles.label}>Reason for dispute</Text>
             <TextInput
               style={[commonStyles.input, commonStyles.textArea]}
               value={reason}
