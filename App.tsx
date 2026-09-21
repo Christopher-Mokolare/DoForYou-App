@@ -31,14 +31,12 @@ import AdminScreen from './src/screens/AdminScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import NotificationSettingsScreen from './src/screens/NotificationSettingsScreen';
-import PaymentMethodsScreen from './src/screens/PaymentMethodsScreen';
 import SupportScreen from './src/screens/SupportScreen';
 import TaskDetailsScreen from './src/screens/TaskDetailsScreen';
 import TaskConfirmationScreen from './src/screens/TaskConfirmationScreen';
 import TaskRatingScreen from './src/screens/TaskRatingScreen';
 import TaskAppealScreen from './src/screens/TaskAppealScreen';
 import BankDetailsScreen from './src/screens/BankDetailsScreen';
-import WalletScreen from './src/screens/WalletScreen';
 import PaymentScreen from './src/screens/PaymentScreen';
 import MainTabNavigator from './src/navigation/MainTabNavigator';
 
@@ -116,11 +114,6 @@ const MainStack = memo(() => {
         options={{ headerShown: false }}
       />
       <Stack.Screen 
-        name="PaymentMethods" 
-        component={PaymentMethodsScreen} 
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen 
         name="Support" 
         component={SupportScreen} 
         options={{ headerShown: false }}
@@ -143,11 +136,6 @@ const MainStack = memo(() => {
       <Stack.Screen 
         name="BankDetails" 
         component={BankDetailsScreen} 
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen 
-        name="Wallet" 
-        component={WalletScreen} 
         options={{ headerShown: false }}
       />
       <Stack.Screen 
