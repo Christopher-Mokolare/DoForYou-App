@@ -10,7 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
-import { acceptTask } from '../store/slices/tasksSlice';
+import { acceptTask, completeTask } from '../store/slices/tasksSlice';
 
 const TaskDetailsScreen = ({ navigation, route }: any) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -32,7 +32,7 @@ const TaskDetailsScreen = ({ navigation, route }: any) => {
           text: 'Accept',
           onPress: async () => {
             try {
-              await dispatch(acceptTask(task.id)).unwrap();
+              await dispatch(acceptTask({ taskId: String(task.taskId || task.id), helperName: `${user?.firstName || ''} ${user?.lastName || ''}`.trim(), helperContact: user?.phoneNumber || '', termsAccepted: true })).unwrap();
               Alert.alert('Success', 'Task accepted successfully!', [
                 { text: 'OK', onPress: () => navigation.goBack() }
               ]);
@@ -55,28 +55,22 @@ const TaskDetailsScreen = ({ navigation, route }: any) => {
     }
   };
 
-  const canAcceptTask = task.taskStatus === 'posted' && task.createdByUserId !== user?.id;
-  const canConfirmCompletion = task.taskStatus === 'completed' && task.createdByUserId === user?.id;
-  const canMarkCompleted = task.taskStatus === 'in_progress' && task.acceptedByUserId === user?.id;
-  const canAppeal = task.taskStatus === 'rejected' && task.acceptedByUserId === user?.id;
-  const canRate = (task.taskStatus === 'runner_paid' || task.taskStatus === 'confirmed') && 
+  const status = String(task.taskStatus || '').toLowerCase();
+  const canAcceptTask = (status === 'posted') && task.createdByUserId !== user?.id;
+  const canConfirmCompletion = (status === 'completed') && task.createdByUserId === user?.id;
+  const canMarkCompleted = (status === 'claimed' || status === 'inprogress' || status === 'in_progress') && task.acceptedByUserId === user?.id;
+  const canAppeal = false;
+  const canRate = (status === 'runnerpaid' || status === 'confirmed') && 
                   (task.createdByUserId === user?.id || task.acceptedByUserId === user?.id);
 
   const handleMarkCompleted = () => {
-    Alert.alert(
-      'Mark as Completed',
-      'Are you sure you have completed this task?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Yes, Completed',
-          onPress: () => {
-            // Update task status to completed
-            navigation.navigate('TaskRating', { task, userType: 'runner' });
-          }
-        }
-      ]
-    );
+    Alert.alert('Mark as Completed', 'Are you sure you have completed this task?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Yes, Completed', onPress: async () => {
+        try { await dispatch(completeTask(String(task.taskId || task.id))).unwrap(); Alert.alert('Completed', 'The creator can now review and confirm completion.'); navigation.goBack(); }
+        catch (error: any) { Alert.alert('Error', error || 'Failed to complete task'); }
+      }}
+    ]);
   };
 
   const handleConfirmCompletion = () => {
