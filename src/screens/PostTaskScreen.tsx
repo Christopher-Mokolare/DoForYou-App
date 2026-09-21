@@ -148,6 +148,14 @@ Proceed to payment?`,
 
           <View style={styles.formContainer}>
             <View style={styles.inputGroup}>
+              <Text style={styles.label}>Task Name *</Text>
+              <View style={[styles.inputContainer, focusedField === 'taskName' && styles.inputFocused]}>
+                <Ionicons name="clipboard-outline" size={20} color={focusedField === 'taskName' ? '#ff6b35' : '#666'} />
+                <TextInput style={styles.input} placeholder="Short task name" placeholderTextColor="#999" value={taskName} onChangeText={setTaskName} onFocus={() => setFocusedField('taskName')} onBlur={() => setFocusedField('')} />
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
               <Text style={styles.label}>Task Description *</Text>
               <View style={[styles.inputContainer, styles.textAreaContainer, focusedField === 'description' && styles.inputFocused]}>
                 <Ionicons name="document-text-outline" size={20} color={focusedField === 'description' ? '#ff6b35' : '#666'} style={styles.textAreaIcon} />
