@@ -69,10 +69,6 @@ const HomeScreen = ({ navigation }: any) => {
     return matchesSearch && isRelevant;
   });
   
-  console.log('HomeScreen: Available tasks:', availableTasks.length);
-  console.log('HomeScreen: Filtered tasks:', filteredTasks.length);
-  console.log('HomeScreen: Search term:', searchTerm);
-
   const handleClaimTask = async (task: Task) => {
     if (task.createdByUserId === user?.id) {
       Alert.alert('Error', 'You cannot claim your own task');
@@ -99,7 +95,8 @@ Platform fee: R${(task.budget * 0.15).toFixed(2)}`,
               await dispatch(claimTask({
                 taskId: task.taskId,
                 helperName: `${user.firstName} ${user.lastName}`,
-                helperContact: user.phoneNumber
+                helperContact: user.phoneNumber,
+                termsAccepted: true
               })).unwrap();
               Alert.alert('Success', 'Task claimed successfully!');
             } catch (error: any) {
