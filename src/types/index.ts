@@ -36,4 +36,4 @@ export interface ForgotPasswordModel { email:string; }
 export interface ResetPasswordModel { token:string; email:string; newPassword:string; }
 export interface EmailVerificationModel { token:string; email:string; }
 export interface TaskFilter { search?:string; searchTerm?:string; category?:string; area?:string; minBudget?:number; maxBudget?:number; priority?:Priority; }
-export type Errand=Task;
+export interface DashboardStats { totalUsers:number; totalTasks:number; activeTasks:number; completedTasks:number; totalRevenue:number; pendingPayments:number; [key:string]: number; }\nexport type Errand=Task;
