@@ -13,13 +13,14 @@ export interface Task {
   taskName?:string; taskTitle?:string; title?:string; description?:string; taskDescription:string; category:string; area:string;
   dateNeeded:string; budget:number; notes?:string; paymentStatus:PaymentStatus; taskStatus:TaskStatus;
   helperName?:string; helperContact?:string; helperEmail?:string; acceptedByUserId?:number; priority:Priority;
-  createdAt:string; updatedAt?:string; completedAt?:string; payoutAmount?:number; escrowStatus?:string;
+  createdAt:string; updatedAt?:string; completedAt?:string; payoutAmount?:number; payoutStatus?:string; payoutReference?:string; payoutInitiatedAt?:string; payoutCompletedAt?:string; escrowStatus?:string;
   escrowHoldUntil?:string; canAccept?:boolean; canConfirm?:boolean; canDispute?:boolean; canEdit?:boolean; canComplete?:boolean;
   canCancel?:boolean; createdByUser?:User; acceptedByUser?:User; runnerId?:number; runnerName?:string; runnerContact?:string;
   posterName?:string; posterRating?:number; status?:string;
 }
 export interface ProgressUpdate { id:number; message:string; timestamp:string; userId:number; userName:string; }
 export interface TaskMessage { id:number; taskId:string; senderId:number; senderName:string; content:string; timestamp:string; isRead:boolean; isCurrentUser?:boolean; }
+export interface TaskConversation { id:number; taskId:string; title:string; description:string; taskStatus:TaskStatus|string; chatClosed:boolean; completedAt?:string; participantName:string; participantId?:number; lastMessage?:string; lastMessageAt?:string; unreadCount:number; }
 export interface RegisterModel { firstName:string; lastName:string; email:string; password:string; phoneNumber:string; userType:'creator'|'runner'|'both'; address:string; idNumber?:string; dateOfBirth?:string; }
 export interface LoginModel { email:string; password:string; }
 export interface AuthResponse { success:boolean; message:string; user?:User; token?:string; refreshToken?:string; expiration?:string; }
