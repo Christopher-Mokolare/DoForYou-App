@@ -30,10 +30,11 @@ export interface UserPreferences { canCreateTasks:boolean; canAcceptTasks:boolea
 export interface UserNotification { id:number; type:string; title:string; message:string; isRead:boolean; createdAt:string; relatedTaskId?:number; relatedTaskStringId?:string; taskId?:string; }
 export interface BankAccount { id:number; bankName:string; accountNumber:string; accountHolderName:string; accountType:string; branchCode:string; isVerified:boolean; isDefault:boolean; }
 export interface TaskRating { rating:number; comment?:string; }
-export interface TaskAppeal { id:number; taskId:number; reason:string; status:'pending'|'approved'|'rejected'; adminResponse?:string; createdAt:string; }
+export interface TaskAppeal { id:number; taskId:string; reason:string; status:'pending'|'approved'|'rejected'; adminResponse?:string; createdAt:string; }
 export interface AuditLog { id:number; action:string; description:string; createdAt:string; }
 export interface ForgotPasswordModel { email:string; }
 export interface ResetPasswordModel { token:string; email:string; newPassword:string; }
 export interface EmailVerificationModel { token:string; email:string; }
 export interface TaskFilter { search?:string; searchTerm?:string; category?:string; area?:string; minBudget?:number; maxBudget?:number; priority?:Priority; }
-export interface DashboardStats { totalUsers:number; totalTasks:number; activeTasks:number; completedTasks:number; totalRevenue:number; pendingPayments:number; [key:string]: number; }\nexport type Errand=Task;
+export interface DashboardStats { totalUsers:number; totalTasks:number; activeTasks:number; completedTasks:number; totalRevenue:number; pendingPayments:number; [key:string]: number; }
+export type Errand = Task;
