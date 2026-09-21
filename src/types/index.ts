@@ -15,7 +15,6 @@ export interface User {
   profileCompletion?: number;
   rating: number;
   completedTasks: number;
-  walletBalance?: number;
   roles?: string;
   isAdmin?: boolean;
   canCreateTasks?: boolean;
@@ -25,8 +24,8 @@ export interface User {
 }
 
 // Task Management Types
-export type PaymentStatus = 'Pending' | 'EscrowHeld' | 'EscrowReleased' | 'Completed' | 'RunnerPaid';
-export type TaskStatus = 'PendingPayment' | 'Posted' | 'Claimed' | 'Completed' | 'RunnerPaid';
+export type PaymentStatus = 'Pending' | 'EscrowHeld' | 'EscrowReleased' | 'PayoutPending' | 'Processing' | 'RunnerPaid' | 'PayoutReturned' | 'PayoutCancelled' | 'PayoutFailed' | 'DisputePending' | 'RefundPending' | 'Refunded' | 'Failed' | 'Expired';
+export type TaskStatus = 'PendingPayment' | 'Posted' | 'Claimed' | 'InProgress' | 'Completed' | 'Confirmed' | 'RunnerPaid' | 'PayoutPending' | 'PayoutFailed' | 'DisputePending' | 'RefundPending' | 'Cancelled';
 export type Priority = 'Standard' | 'Urgent' | 'Low';
 
 export interface Task {
@@ -45,7 +44,7 @@ export interface Task {
   paymentStatus: PaymentStatus;
   taskStatus: TaskStatus;
   helperName?: string;
-  helperContact?: string;
+  helperContact?: string;\n  payoutAmount?: number;\n  escrowStatus?: string;\n  canConfirm?: boolean;\n  canDispute?: boolean;
   acceptedByUserId?: number;
   runnerId?: number;
   runnerName?: string;
