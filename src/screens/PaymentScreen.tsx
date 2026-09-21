@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { paymentAPI } from '../services/api';
+import * as WebBrowser from 'expo-web-browser';
 
 interface Props {
   navigation: any;
@@ -13,20 +14,16 @@ const PaymentScreen: React.FC<Props> = ({ navigation, route }) => {
   const { taskId } = route.params || {};
   const [loading, setLoading] = useState(false);
 
-  const handleSandboxPayment = async () => {
+  const handlePayment = async () => {
     if (!taskId) return;
-    
     setLoading(true);
     try {
-      const result = await paymentAPI.simulatePaymentSuccess(taskId);
-      Alert.alert('Success', result.message, [
-        { text: 'OK', onPress: () => navigation.navigate('Home') }
-      ]);
+      const paymentUrl = await paymentAPI.getPaymentUrl(taskId);
+      if (!paymentUrl) throw new Error('Payment link is not available yet.');
+      await WebBrowser.openBrowserAsync(paymentUrl);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Payment simulation failed');
-    } finally {
-      setLoading(false);
-    }
+      Alert.alert('Payment unavailable', error.response?.data?.message || error.message || 'Unable to start payment.');
+    } finally { setLoading(false); }
   };
 
   return (
@@ -48,17 +45,17 @@ const PaymentScreen: React.FC<Props> = ({ navigation, route }) => {
           
           <TouchableOpacity 
             style={[styles.button, styles.sandboxButton]} 
-            onPress={handleSandboxPayment}
+            onPress={handlePayment}
             disabled={loading}
           >
             <Ionicons name="card-outline" size={20} color="white" />
             <Text style={styles.buttonText}>
-              {loading ? 'Processing...' : 'Simulate Payment (Sandbox)'}
+              {loading ? 'Processing...' : 'Continue to secure payment'}
             </Text>
           </TouchableOpacity>
           
           <Text style={styles.note}>
-            This is a sandbox environment for testing. No real payment will be processed.
+            You will be redirected to the secure payment provider. Payment confirmation is handled by the backend.
           </Text>
         </View>
       </View>
