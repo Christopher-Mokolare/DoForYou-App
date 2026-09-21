@@ -102,7 +102,9 @@ export const tasksAPI = {
   },
   getMessages: async (taskId: string): Promise<TaskMessage[]> => unwrap(await api.get(`/api/v1/tasks/${taskId}/messages`)) ?? [],
   sendMessage: async (taskId: string, content: string): Promise<void> => {
-    const r = await api.post(`/api/v1/tasks/${taskId}/messages`, { content });
+    const message = content.trim();
+    if (!message || message.length > 1000) throw new Error('Message must contain between 1 and 1000 characters.');
+    const r = await api.post(`/api/v1/tasks/${taskId}/messages`, { content: message });
     assertSuccess(r.data, 'Failed to send message');
   },
   getProgress: async (taskId: string): Promise<ProgressUpdate[]> => unwrap(await api.get(`/api/v1/tasks/${taskId}/progress`)) ?? [],
