@@ -84,7 +84,7 @@ const TaskRatingScreen: React.FC<Props> = ({ navigation, route }) => {
           {userType === 'creator' ? (
             <Text style={commonStyles.taskHelper}>Completed by: {task.helperName}</Text>
           ) : (
-            <Text style={commonStyles.taskHelper}>Posted by: {task.createdByUserName}</Text>
+            <Text style={commonStyles.taskHelper}>Posted by: {task.createdByUser?.name || `${task.createdByUser?.firstName || ''} ${task.createdByUser?.lastName || ''}`.trim() || 'Task creator'}</Text>
           )}
         </View>
 
