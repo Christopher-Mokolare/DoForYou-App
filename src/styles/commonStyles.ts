@@ -65,7 +65,7 @@ export const typography = {
   },
 };
 
-export const commonStyles = StyleSheet.create({
+export const commonStyles = Object.assign(StyleSheet.create({
   // Layout
   container: {
     flex: 1,
@@ -453,7 +453,7 @@ export const commonStyles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-});
+}), { colors });
 
 export const screenWidth = width;
 export const screenHeight = height;
