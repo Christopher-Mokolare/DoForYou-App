@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'reac
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch } from 'react-redux';
-import { tasksAPI } from '../services/api';
+import { tasksAPI, disputesAPI } from '../services/api';
 import { updateTaskStatus } from '../store/slices/tasksSlice';
 import { commonStyles } from '../styles/commonStyles';
 import { Task } from '../types';
@@ -34,7 +34,7 @@ const TaskConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
       if (confirmed) {
         Alert.alert(
           'Task Confirmed!',
-          `Payment of R${task.runnerAmount} has been processed to the runner.`,
+          `The task has been confirmed. The backend will process the runner payout from the escrow workflow.`,
           [{ text: 'OK', onPress: () => navigation.goBack() }]
         );
       } else {
@@ -101,7 +101,7 @@ const TaskConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
           >
             <Ionicons name="checkmark-circle" size={24} color="white" />
             <Text style={commonStyles.confirmButtonText}>
-              YES - Task Completed (Pay Runner)
+              YES - Confirm Completion
             </Text>
           </TouchableOpacity>
 
@@ -124,7 +124,7 @@ const TaskConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
           >
             <Ionicons name="close-circle" size={24} color="white" />
             <Text style={commonStyles.rejectButtonText}>
-              NO - Task Not Completed
+              NO - Raise Dispute
             </Text>
           </TouchableOpacity>
         </View>
