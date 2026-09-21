@@ -334,3 +334,17 @@ eas build --platform all
 ---
 
 **DoForYou React Native App** - Connecting people through tasks, built with modern technology and best practices.
+## Current DFY architecture alignment
+
+This mobile client follows the current DFY-BE / DFY-FE workflow:
+
+- Users can operate as Creator, Runner, or Both.
+- Creator task payment is handled through the backend/Ozow payment flow and escrow.
+- A Runner claims an escrow-funded task, completes it, and the Creator confirms completion.
+- Confirmed escrow is released into the backend payout workflow and eligible runners receive direct bank payouts through the verified-bank-account flow.
+- The legacy runner wallet/withdrawal UI is retired from the mobile product.
+- Task disputes are submitted through the platform dispute workflow.
+- Ratings, notifications, messaging, profile/preferences, support and admin workflows use the /api/v1 backend contract.
+- Mobile code should treat backend task/payment state as authoritative; it must not calculate or invent payout amounts locally.
+
+The legacy wallet/payment-method files and obsolete sandbox payment simulation are no longer part of the active mobile navigation.
