@@ -8,7 +8,7 @@ import {
   UserPreferences, UserWallet, WalletTransaction, WithdrawalRequest,
   UserNotification, PaymentRecord,
   PaginatedResponse, ApiResponse, DashboardStats,
-  TaskFilter,
+  TaskFilter,\n  BankDetails,
 } from '../types';
 
 const api = axios.create({
@@ -146,7 +146,22 @@ export const tasksAPI = {
   },
 };
 
-// ─── Wallet ───────────────────────────────────────────────────────────────────
+// ─── Banking / direct runner payouts ─────────────────────────────────────────
+export const bankingAPI = {
+  getAccounts: async (): Promise<any[]> => { const r = await api.get('/api/v1/banking/accounts'); return r.data.data ?? []; },
+  getBanks: async (): Promise<any[]> => { const r = await api.get('/api/v1/banking/banks'); return r.data.data ?? []; },
+  addAccount: async (data: any): Promise<any> => { const r = await api.post('/api/v1/banking/accounts', data); return r.data.data ?? r.data; },
+  verifyAccount: async (id: number): Promise<any> => { const r = await api.post(`/api/v1/banking/bank-accounts/${id}/verify`); return r.data.data ?? r.data; },
+};
+export const disputesAPI = {
+  create: async (taskId: string, issue: string, category: string): Promise<any> => { const r = await api.post('/api/v1/disputes', { taskId, issue, category }); return r.data.data ?? r.data; },
+  getMine: async (): Promise<any[]> => { const r = await api.get('/api/v1/disputes/my'); return r.data.data ?? []; },
+};
+export const ratingsAPI = {
+  submit: async (taskId: string, ratingValue: number, review?: string): Promise<any> => { const r = await api.post('/api/v1/ratings', { taskId, ratingValue, review }); return r.data.data ?? r.data; },
+  canRate: async (taskId: string): Promise<any> => { const r = await api.get(`/api/v1/ratings/can-rate/${taskId}`); return r.data.data ?? r.data; },
+};
+// ─── Legacy wallet API (retained only for backward compatibility; do not use for runner payouts) ─
 
 export const walletAPI = {
   getBalance: async (): Promise<UserWallet> => {
