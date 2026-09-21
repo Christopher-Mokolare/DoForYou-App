@@ -8,7 +8,7 @@ on:
       - align/current-dfy-fe-be
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   typecheck:
@@ -19,7 +19,18 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      # The existing lockfile is stale relative to package.json/transitive Expo dependencies.
-      # Install from package.json so CI can validate the application while the lockfile is regenerated.
-      - run: npm install --no-audit --no-fund
-      - run: npx tsc --noEmit
+      - name: Regenerate lockfile
+        run: npm install --package-lock-only --no-audit --no-fund
+      - name: Commit regenerated lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet -- package-lock.json; then
+            git add package-lock.json
+            git commit -m "chore: synchronize mobile npm lockfile"
+            git push
+          fi
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Typecheck
+        run: npx tsc --noEmit
