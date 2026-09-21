@@ -268,14 +268,6 @@ Proceed to payment?`,
                   onBlur={() => setFocusedField('')}
                 />
               </View>
-              {paymentBreakdown && (
-                <View style={styles.paymentBreakdown}>
-                  <Text style={styles.breakdownTitle}>Payment Breakdown:</Text>
-                  <Text style={styles.breakdownItem}>• You pay: R{paymentBreakdown.originalAmount}</Text>
-                  <Text style={styles.breakdownItem}>• Platform fee (15%): R{paymentBreakdown.platformFee.toFixed(2)}</Text>
-                  <Text style={styles.breakdownItem}>• Runner receives: R{paymentBreakdown.runnerAmount.toFixed(2)}</Text>
-                </View>
-              )}
             </View>
 
             <View style={styles.inputGroup}>
