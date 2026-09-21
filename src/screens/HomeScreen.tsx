@@ -62,10 +62,10 @@ const HomeScreen = ({ navigation }: any) => {
       task.area.toLowerCase().includes(searchTerm.toLowerCase());
     
     // Show posted tasks for claiming, and user's accepted tasks for progress
-    const isRelevant = task.taskStatus === 'Posted' ||
-      (task.acceptedByUserId === user?.id && task.taskStatus === 'Claimed');
+    const normalizedStatus = String(task.taskStatus || '').toLowerCase();
+    const isRelevant = normalizedStatus === 'posted' ||
+      (task.acceptedByUserId === user?.id && normalizedStatus === 'claimed');
     
-    console.log(`Task ${task.id}: status=${task.taskStatus}, isRelevant=${isRelevant}, matchesSearch=${matchesSearch}`);
     return matchesSearch && isRelevant;
   });
   
@@ -174,7 +174,7 @@ Platform fee: R${(task.budget * 0.15).toFixed(2)}`,
         <View style={styles.posterInfo}>
           <Text style={styles.posterName}>By: {item.createdByUserName}</Text>
         </View>
-        {item.taskStatus === 'posted' && (
+        {String(item.taskStatus || '').toLowerCase() === 'posted' && (
           <TouchableOpacity
             style={[styles.claimButton, item.priority === 'urgent' && styles.urgentButton]}
             onPress={() => handleClaimTask(item)}
@@ -184,7 +184,7 @@ Platform fee: R${(task.budget * 0.15).toFixed(2)}`,
             </Text>
           </TouchableOpacity>
         )}
-        {item.taskStatus === 'InProgress' && item.acceptedByUserId === user?.id && (
+        {String(item.taskStatus || '').toLowerCase() === 'inprogress' || String(item.taskStatus || '').toLowerCase() === 'in_progress' && item.acceptedByUserId === user?.id && (
           <TouchableOpacity
             style={[styles.claimButton, { backgroundColor: '#28a745' }]}
             onPress={() => handleCompleteTask(item.id)}
