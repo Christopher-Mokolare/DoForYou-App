@@ -5,7 +5,7 @@ const ENV = {
       timeout: 30000,
     },
     websocket: {
-      url: 'wss://qa-api.doforyou.co.za/taskHub'
+      url: 'https://qa-api.doforyou.co.za/api/v1/hubs/chat'
     },
     enableLogging: true,
     enableMockData: false
@@ -16,7 +16,7 @@ const ENV = {
       timeout: 30000,
     },
     websocket: {
-      url: 'wss://api.doforyou.co.za/taskHub'
+      url: 'https://api.doforyou.co.za/api/v1/hubs/chat'
     },
     enableLogging: false,
     enableMockData: false
