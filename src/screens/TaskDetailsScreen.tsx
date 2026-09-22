@@ -81,6 +81,10 @@ const TaskDetailsScreen = ({ navigation, route }: any) => {
     navigation.navigate('TaskAppeal', { task });
   };
 
+  const handleChat = () => {
+    navigation.navigate('TaskChat', { task });
+  };
+
   const handleRate = () => {
     const userType = task.createdByUserId === user?.id ? 'creator' : 'runner';
     navigation.navigate('TaskRating', { task, userType });
@@ -151,6 +155,11 @@ const TaskDetailsScreen = ({ navigation, route }: any) => {
             </View>
           )}
         </View>
+
+        <TouchableOpacity style={styles.chatButton} onPress={handleChat}>
+          <Ionicons name="chatbubbles-outline" size={20} color="white" />
+          <Text style={styles.chatButtonText}>Open Conversation</Text>
+        </TouchableOpacity>
 
         {canAcceptTask && (
           <TouchableOpacity style={styles.acceptButton} onPress={handleAcceptTask}>
@@ -297,6 +306,21 @@ const styles = StyleSheet.create({
   posterEmail: {
     fontSize: 14,
     color: '#666',
+  },
+  chatButton: {
+    backgroundColor: '#495057',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 15,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chatButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   acceptButton: {
     backgroundColor: '#ff6b35',
