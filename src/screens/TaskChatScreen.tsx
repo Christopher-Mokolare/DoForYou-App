@@ -46,12 +46,12 @@ export default function TaskChatScreen({ navigation, route }: any) {
   const fetchMessages = useCallback(async () => {
     try {
       mergeMessages(await tasksAPI.getMessages(taskId));
-    } catch (error: any) {
-      if (!messages.length) setLoading(false);
+    } catch {
+      // The SignalR connection remains usable even when a polling refresh fails.
     } finally {
       setLoading(false);
     }
-  }, [mergeMessages, taskId, messages.length]);
+  }, [mergeMessages, taskId]);
 
   useEffect(() => {
     let active = true;
