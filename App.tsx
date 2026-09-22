@@ -29,6 +29,7 @@ import TaskRatingScreen from './src/screens/TaskRatingScreen';
 import TaskAppealScreen from './src/screens/TaskAppealScreen';
 import BankDetailsScreen from './src/screens/BankDetailsScreen';
 import PaymentScreen from './src/screens/PaymentScreen';
+import TaskChatScreen from './src/screens/TaskChatScreen';
 import MainTabNavigator from './src/navigation/MainTabNavigator';
 
 const Stack = createStackNavigator();
@@ -62,6 +63,7 @@ const MainStack = memo(() => (
     <Stack.Screen name="TaskAppeal" component={TaskAppealScreen} options={{ headerShown: false }} />
     <Stack.Screen name="BankDetails" component={BankDetailsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Payment" component={PaymentScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="TaskChat" component={TaskChatScreen} options={{ headerShown: false }} />
   </Stack.Navigator>
 ));
 
